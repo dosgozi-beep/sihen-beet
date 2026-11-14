@@ -177,6 +177,8 @@ body.kids #startBtn{color:#06202a;background:linear-gradient(180deg,#f0fdff,#8fe
 .rkNote{width:min(94vw,440px);color:var(--dim);font-size:10.5px;line-height:1.6;margin-top:8px;text-align:center}
 .rkIn{display:block;margin-top:6px;padding:8px;border-radius:12px;background:rgba(243,201,105,.18);border:1px solid var(--gold);color:var(--gold2);font-weight:900;cursor:pointer}
 #rankBtn{margin-top:8px}
+.rkScope button{font-size:12px;letter-spacing:.05em}
+.rkRow.gap{justify-content:center;color:var(--dim);font-size:12px;padding:4px 0}
 #shareImg{width:min(88vw,420px);border-radius:12px;box-shadow:0 0 30px rgba(243,201,105,.35);margin-top:2vh;user-select:auto;-webkit-user-select:auto;-webkit-touch-callout:default}
 #pause .btn{width:220px;margin:7px}
 #pause h2{letter-spacing:.5em;font-weight:500}
@@ -263,6 +265,7 @@ body.kids #davLink{border-color:var(--kid);box-shadow:0 0 22px rgba(143,227,255,
 <div id="rank" class="screen">
   <h2>RANKING</h2>
   <div class="rkSong"><button id="rkPrev" aria-label="前の曲">‹</button><div><b id="rkTitle"></b><small id="rkPsalm"></small></div><button id="rkNext" aria-label="次の曲">›</button></div>
+  <div class="rkTabs rkScope" id="rkScope" style="display:none"><button data-s="online">🌏 全国</button><button data-s="local">📱 この端末</button></div>
   <div class="rkTabs" id="rkTabs"></div>
   <label class="rkName"><span id="rkNameLbl">プレイヤー名</span><input id="rkName" maxlength="10" autocomplete="off" enterkeyhint="done"></label>
   <div class="rkList" id="rkList"></div>
@@ -1022,7 +1025,54 @@ function rkSubmit(songId,diff,e){ // returns 1-based position, or 0 if outside t
   L.sort((a,b)=>b.s-a.s||a.t-b.t);const pos=L.indexOf(e)+1;all[k]=L.slice(0,RANKN);store.set('rank',all);
   return pos<=RANKN?{pos,id:e.id}:{pos:0,id:null};
 }
-const RK={song:null,diff:null,hl:null,from:'select'};
+const RK={song:null,diff:null,hl:null,from:'select',scope:'local'};
+// ---------- online ranking (Supabase, plain REST — no library) ----------
+const SB={url:'https://kdzedfffbgtloyvjexjf.supabase.co',key:'sb_publishable_2yFicxMxEixzXQ5YL65zYA_o4XoNQHI'};
+const ONL={ok:/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(SB.url),sess:store.get('sbs',null),cache:{},myRank:store.get('sbRank',{})};
+if(ONL.ok)RK.scope='online';
+async function sbFetch(path,opt={},auth){
+  const h={apikey:SB.key,'Content-Type':'application/json'};if(auth)h.Authorization='Bearer '+auth;
+  const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),8000);
+  try{const r=await fetch(SB.url+path,{cache:'no-store',...opt,headers:{...h,...(opt.headers||{})},signal:ctl.signal});const j=await r.json().catch(()=>null);if(!r.ok)throw Object.assign(new Error('sb '+r.status),{j});return j}
+  finally{clearTimeout(tm)}
+}
+function sbKeep(j){if(!j||!j.access_token)throw new Error('no session');ONL.sess={at:j.access_token,rt:j.refresh_token,exp:Date.now()/1000+(j.expires_in||3600),uid:j.user&&j.user.id};store.set('sbs',ONL.sess);return ONL.sess}
+async function sbAuth(){
+  const s0=ONL.sess;if(s0&&s0.exp>Date.now()/1000+60)return s0;
+  if(s0&&s0.rt){try{return sbKeep(await sbFetch('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:s0.rt})}))}catch(e){}}
+  return sbKeep(await sbFetch('/auth/v1/signup',{method:'POST',body:JSON.stringify({data:{}})}));
+}
+async function sbRpc(fn,args){const ss=await sbAuth();return sbFetch('/rest/v1/rpc/'+fn,{method:'POST',body:JSON.stringify(args)},ss.at)}
+async function sbBoard(song,diff,force){
+  const k=song+':'+diff,c=ONL.cache[k];if(c&&!force&&Date.now()-c.t<20000)return c.rows;
+  const q='/rest/v1/scores?select=player_id,name,score,mark,combo,updated_at&song=eq.'+encodeURIComponent(song)+'&diff=eq.'+encodeURIComponent(diff)+'&order=score.desc,updated_at.asc&limit=50';
+  const rows=await sbFetch(q,{method:'GET'});ONL.cache[k]={t:Date.now(),rows};return rows;
+}
+document.querySelectorAll('#rkScope button').forEach(b=>b.addEventListener('click',()=>{RK.scope=b.dataset.s;renderRank()}));
+function rkRow(i,name,sub,score,mark,me){
+  const r=document.createElement('div');r.className='rkRow'+(i<3?' r'+(i+1):'')+(me?' me':'');
+  const no=document.createElement('div');no.className='no';no.textContent=i<3?['👑','2','3'][i]:String(i+1);if(i===0)no.style.fontSize='18px';
+  const nm=document.createElement('div');nm.className='nm';nm.textContent=name||'ななしの羊飼い';
+  const dt=document.createElement('small');dt.textContent=sub;nm.appendChild(dt);
+  const sc=document.createElement('div');sc.className='sc';sc.textContent=(+score).toLocaleString();
+  const mk=document.createElement('small');mk.textContent=mark==='AP'?'ALL PERFECT':mark==='FC'?'FULL COMBO':(mark||'');sc.appendChild(mk);
+  r.append(no,nm,sc);return r;
+}
+function renderOnline(so){
+  const box=$('rkList'),k=so.id+':'+RK.diff,tok=k+Math.random();RK.tok=tok;
+  box.innerHTML='<div class="rkEmpty">全国ランキングを読みこみ中…</div>';
+  $('rkNote').innerHTML='全国のプレイヤーの自己ベスト（各曲・難易度ごとに上位50人）です。<br>名前を変えると、全国ランキングの名前も変わります。';
+  sbBoard(so.id,RK.diff).then(rows=>{
+    if(RK.tok!==tok)return;box.innerHTML='';
+    if(!rows||!rows.length){box.innerHTML='<div class="rkEmpty">まだ記録がありません。<br>全国1位をねらおう！</div>';return}
+    const me=ONL.sess&&ONL.sess.uid;let seen=false;
+    rows.forEach((e,i)=>{const d=new Date(e.updated_at),mine=me&&e.player_id===me;if(mine)seen=true;
+      box.appendChild(rkRow(i,e.name,(d.getMonth()+1)+'/'+d.getDate()+'  COMBO '+(e.combo||0),e.score,e.mark,mine))});
+    const mr=ONL.myRank[k];
+    if(!seen&&mr){const g=document.createElement('div');g.className='rkRow gap';g.textContent='…';box.appendChild(g);
+      box.appendChild(rkRow(mr.r-1,pName()||'あなた','あなたの記録',mr.s,mr.m,true))}
+  }).catch(()=>{if(RK.tok!==tok)return;box.innerHTML='<div class="rkEmpty">全国ランキングにつながりませんでした。<br>通信できる場所で もう一度ひらいてね。</div>'});
+}
 function rkDiffs(so){return [...STD.filter(d=>so.diffs[d]),...(so.diffs.KIDS?['KIDS']:[])]}
 function rkPlayable(){return SONGS.filter(so=>!so.lock)}
 function renderRank(){
@@ -1031,6 +1081,10 @@ function renderRank(){
   $('rkTabs').innerHTML='';
   for(const d of ds){const b=document.createElement('button');b.textContent=d==='KIDS'?'キッズ':d;b.className=d===RK.diff?'on':'';if(d==='KIDS')b.classList.add('maru');
     b.addEventListener('click',()=>{RK.diff=d;renderRank()});$('rkTabs').appendChild(b)}
+  $('rkScope').style.display=ONL.ok?'':'none';
+  document.querySelectorAll('#rkScope button').forEach(b=>b.classList.toggle('on',b.dataset.s===RK.scope));
+  if(ONL.ok&&RK.scope==='online'){renderOnline(so);return}
+  $('rkNote').innerHTML='この端末で遊んだ人のランキングです（各曲・難易度ごとに上位10件）。<br>家族や友だちと同じ端末で、名前を変えて遊んでみよう！';
   const L=rkAll()[so.id+':'+RK.diff]||[],box=$('rkList');box.innerHTML='';
   if(!L.length){box.innerHTML='<div class="rkEmpty">まだ記録がありません。<br>最初のランクインをねらおう！</div>';return}
   L.forEach((e,i)=>{
@@ -1053,7 +1107,8 @@ function rkStep(dir){const L=rkPlayable();let i=L.findIndex(x=>x.id===RK.song);i
 $('rkPrev').addEventListener('click',()=>rkStep(-1));$('rkNext').addEventListener('click',()=>rkStep(1));
 $('rkName').addEventListener('change',()=>{
   const v=$('rkName').value.replace(/[\u0000-\u001f<>]/g,'').trim().slice(0,10);$('rkName').value=v;store.set('pname',v);
-  if(RK.hl){const all=rkAll();for(const k in all)for(const e of all[k])if(e.id===RK.hl)e.n=v;store.set('rank',all);renderRank()}
+  if(RK.hl){const all=rkAll();for(const k in all)for(const e of all[k])if(e.id===RK.hl)e.n=v;store.set('rank',all)}
+  if(ONL.ok&&ONL.sess){sbRpc('set_name',{p_name:v||'ななしの羊飼い'}).then(()=>{ONL.cache={};renderRank()}).catch(()=>{})}else renderRank();
 });
 $('rkName').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')e.target.blur()});
 $('rkClose').addEventListener('click',()=>{if(RK.from==='result'){mode='result';show('result')}else openSelect()});
@@ -1214,7 +1269,15 @@ function finish(){
     }
     lastRank=rkSubmit(SONG.id,D,{n:pName(),s,m:ap?'AP':fc?'FC':'',r:K?'':'RANK '+rank,c:st.maxCombo,t:Date.now()});
     if(lastRank.pos){h='<span class="rkIn" id="rkInMsg">🏆 '+(K?'ランキング '+lastRank.pos+'い に はいったよ！':'ランキング '+lastRank.pos+'位にランクイン！')+(pName()?'':'<br><small style="font-weight:400">タップして なまえを いれよう</small>')+'</span>'+h}
-    $('rProg').innerHTML=h;{const m=$('rkInMsg');if(m)m.addEventListener('click',()=>$('rRankBtn').click())}lastResult={s,rank,win,ap,fc,K,title:TITLES[t1][0],sheep:st.sheep,gol:st.gol,maxCombo:st.maxCombo,diff:D,P:st.P,G:st.G,Dd:st.D,M:st.M,J:st.JUST||0};
+    if(ONL.ok&&s>0){const sk=SONG.id+':'+D,mk=ap?'AP':fc?'FC':'';
+      sbRpc('submit_score',{p_song:SONG.id,p_diff:D,p_name:pName()||'ななしの羊飼い',p_score:s,p_mark:mk,p_combo:st.maxCombo}).then(r=>{
+        if(typeof r!=='number')return;const prev=ONL.myRank[sk];
+        ONL.myRank[sk]={r,s:Math.max(s,prev?prev.s:0),m:prev&&prev.s>s?prev.m:mk};store.set('sbRank',ONL.myRank);delete ONL.cache[sk];
+        const el=document.createElement('span');el.className='rkIn';el.textContent='🌏 '+(K?'ぜんこく '+r+'い！':'全国ランキング '+r+'位！');
+        el.addEventListener('click',()=>{RK.scope='online';$('rRankBtn').click()});const rp=$('rProg');rp.insertBefore(el,rp.firstChild);
+      }).catch(()=>{});
+    }
+    $('rProg').innerHTML=h;{const m=$('rkInMsg');if(m)m.addEventListener('click',()=>{RK.scope='local';$('rRankBtn').click()})}lastResult={s,rank,win,ap,fc,K,title:TITLES[t1][0],sheep:st.sheep,gol:st.gol,maxCombo:st.maxCombo,diff:D,P:st.P,G:st.G,Dd:st.D,M:st.M,J:st.JUST||0};
   }
   setTimeout(()=>show('result'),400);
 }
