@@ -29,7 +29,9 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 @keyframes blink{50%{opacity:.25}}
 @keyframes float{50%{transform:translateY(-6px)}}
 #select{justify-content:safe center;overflow-x:hidden;background:rgba(0,0,0,.62);overflow-y:auto;touch-action:pan-y}
-.modes{display:flex;width:min(94vw,520px);gap:8px;margin:2px 0 8px}
+.modes{display:flex;width:min(94vw,520px);gap:6px;margin:2px 0 8px}
+.modes .mode{letter-spacing:.06em;padding:10px 4px}.modes .mode small{letter-spacing:0;font-size:9.5px}
+.mode.my.sel{border-color:#8fe3c8;background:rgba(143,227,200,.15);box-shadow:0 0 14px rgba(143,227,200,.4);color:#8fe3c8}
 .mode{flex:1;text-align:center;padding:11px 6px;border-radius:12px;border:1px solid rgba(255,255,255,.4);background:rgba(0,0,0,.4);font-size:13px;letter-spacing:.15em;cursor:pointer}
 .mode small{display:block;font-size:10px;color:var(--dim);letter-spacing:.05em;margin-top:2px;font-family:sans-serif}
 .mode.sel{border-color:var(--gold);background:rgba(243,201,105,.15);box-shadow:0 0 14px rgba(243,201,105,.35);color:var(--gold2)}
@@ -290,7 +292,8 @@ body.kids #davLink{border-color:var(--kid);box-shadow:0 0 22px rgba(143,227,255,
   <button id="collBtn"><span id="tBadge">羊飼い</span><b id="sBadge">🐑 0</b></button>
   <div class="modes">
     <div class="mode" data-m="std">STANDARD<small>ふつうモード</small></div>
-    <div class="mode kid maru" data-m="kids">キッズモード<small>3レーン・ゆっくり・やさしい判定</small></div>
+    <div class="mode kid maru" data-m="kids">キッズモード<small>3レーン・やさしい判定</small></div>
+    <div class="mode my maru" data-m="my">じぶんの曲<small>曲ファイルで あそぶ</small></div>
   </div>
   <div class="carWrap">
     <button class="carNav" id="carPrev" aria-label="前の曲">‹</button>
@@ -397,8 +400,11 @@ const SONGS=[
   g:{std:'SKY',kid:'そら',full:'SKY HIGH!',fullK:'そらまで とどいた！',win:'いつくしみは天より高い',lose:'空はもっと高い',winK:'そらまで とどいたよ！',loseK:'もっと たかく いってみよう！'}},
  {id:'grace',skyT:[0.77,0.23],bgf:'bg_grace.jpg',disc:1,inst:'celesta',title:'AMAZING GRACE',psalm:'賛美歌　J. ニュートン（1779）',short:'賛美歌',num:'恵',glyph:'HYMN',meta:'BPM 120 ・ 3拍子 ・ 1:50 ・ めぐみ',chart:'chart_grace.json',audio:'song_grace',diffs:{NORMAL:7,HARD:12,EXPERT:17,KIDS:2},boss:'stars',c:['#1c1a2e','#b89a5a'],std:7,kid:7,
   g:{std:'GRACE',kid:'めぐみ',full:'AMAZING!',fullK:'すてき！',win:'おどろくばかりの恵み',lose:'恵みはまだ続いている',winK:'めぐみが いっぱい！',loseK:'もういっかい うたおう！'}},
- {id:'shepherd',skyT:[0.77,0.17],bgf:'bg_shepherd.jpg',title:'SHEPHERD BOY',psalm:'詩篇 第23篇　ダビデの歌',num:'23',lock:1,c:['#18241a','#4f7a52'],disc:1,std:8},
- {id:'hallelu',skyT:[0.74,0.12],bgf:'bg_hallelu.jpg',title:'HALLELU-BEET',psalm:'詩篇 第150篇',num:'150',lock:1,c:['#2a1d10','#a8792c'],disc:1,std:9}
+ {id:'joy',inst:'bell',title:'JOY TO THE WORLD',psalm:'賛美歌　詩篇98篇より（I. ワッツ 1719）',short:'賛美歌',num:'98',glyph:'HYMN',meta:'BPM 128 ・ 1:32 ・ よろこび',chart:'chart_joy.json',audio:'song_joy',diffs:{NORMAL:8,HARD:13,EXPERT:15,KIDS:2},boss:'stars',c:['#2a1010','#c8a040'],std:8,kid:8,
+  g:{std:'JOY',kid:'よろこび',full:'JOYFUL!',fullK:'うれしい！',win:'よろこびの歌が ひびきわたった',lose:'よろこびの歌は まだ続く',winK:'よろこびが いっぱい！',loseK:'もういっかい うたおう！'}},
+ {id:'fortress',inst:'brass',title:'A MIGHTY FORTRESS',psalm:'賛美歌　詩篇46篇より（M. ルター 1529）',short:'賛美歌',num:'46',glyph:'HYMN',meta:'BPM 132 ・ 1:53 ・ BOSS: GOLIATH',chart:'chart_fortress.json',audio:'song_fortress',diffs:{NORMAL:8,HARD:12,EXPERT:15,KIDS:2},boss:'goliath',c:['#141820','#7a8aa0'],std:9,kid:9},
+ {id:'shepherd',skyT:[0.77,0.17],bgf:'bg_shepherd.jpg',title:'SHEPHERD BOY',psalm:'詩篇 第23篇　ダビデの歌',num:'23',lock:1,c:['#18241a','#4f7a52'],disc:1,std:10},
+ {id:'hallelu',skyT:[0.74,0.12],bgf:'bg_hallelu.jpg',title:'HALLELU-BEET',psalm:'詩篇 第150篇',num:'150',lock:1,c:['#2a1d10','#a8792c'],disc:1,std:11}
 ];
 const CHS={},BUFS={};
 const chartP=Promise.all(SONGS.filter(s=>s.chart).map(s=>fetch(s.chart).then(r=>r.json()).then(j=>{CHS[s.id]=j}))).then(()=>loadCustom());
@@ -568,8 +574,9 @@ $('title').addEventListener('pointerup',async()=>{
 // ================= SELECT =================
 const modeEls=[...document.querySelectorAll('.mode')];
 const STD=['NORMAL','HARD','EXPERT'];
-function effDiff(so){if(kids())return 'KIDS';if(so.diffs[cfg.diff])return cfg.diff;return STD.filter(d=>so.diffs[d]).pop()}
-const songsFor=()=>SONGS.filter(x=>kids()?x.kid:x.std).sort((p,q)=>kids()?p.kid-q.kid:p.std-q.std);
+function effDiff(so){if(kids())return 'KIDS';if(cfg.mode==='my'){const d=store.get('myDiff','NORMAL');return so.diffs&&so.diffs[d]?d:'NORMAL'}if(so.diffs[cfg.diff])return cfg.diff;return STD.filter(d=>so.diffs[d]).pop()}
+const myMode=()=>cfg.mode==='my';
+const songsFor=()=>myMode()?SONGS.filter(x=>x.custom||x.add):SONGS.filter(x=>!x.custom&&!x.add&&(kids()?x.kid:x.std)).sort((p,q)=>kids()?p.kid-q.kid:p.std-q.std);
 let carList=[],carIdx=0;
 function buildCarousel(){
   carList=songsFor();
@@ -616,11 +623,11 @@ function renderInfo(){
     ds.innerHTML='<div class="myBox">スマホやパソコンにある曲ファイル（MP3・M4A・WAVなど）を選ぶと、リズムを解析して譜面を自動でつくります。曲はこの端末の中だけに保存され、ほかの人には送られません。<br>※配信サービス（Apple Music・Spotifyなど）の曲は使えません。<button class="btn gold maru" id="myPick">♪ 曲ファイルをえらぶ</button><small style="display:block;margin-top:6px;color:#aaa">いま '+n+' / '+MY.max+' 曲</small></div>';
     $('myPick').addEventListener('click',()=>$('myFile').click());return}
   $('startBtn').disabled=false;
-  const best=store.get('best2',{}),list=kids()?['KIDS']:STD.filter(d=>so.diffs[d]),ed=effDiff(so);
+  const best=store.get('best2',{}),list=kids()?['KIDS']:myMode()?[...STD.filter(d=>so.diffs[d]),'KIDS']:STD.filter(d=>so.diffs[d]),ed=effDiff(so);
   for(const d of list){
     const b=best[so.id+':'+d],e=document.createElement('div');e.className='diff'+(d===ed?' sel':'')+(d==='KIDS'?' maru':'');e.dataset.d=d;
     e.innerHTML='<span>'+(d==='KIDS'?'かんたん':d)+'</span><b>'+so.diffs[d]+'</b><small>'+(ch&&ch.charts[d]?ch.charts[d].length+' notes':'')+(b?' / BEST '+b.s.toLocaleString()+(b.m||''):'')+'</small>';
-    e.addEventListener('click',()=>{if(d!=='KIDS'){cfg.diff=d;store.set('diff',d)}renderInfo()});
+    e.addEventListener('click',()=>{if(myMode())store.set('myDiff',d);else if(d!=='KIDS'){cfg.diff=d;store.set('diff',d)}renderInfo()});
     ds.appendChild(e);
   }
   if(so.custom){const b=document.createElement('button');b.className='myDel';b.textContent='この曲を消す';
@@ -833,7 +840,7 @@ async function importMyFile(file){
     prog(95);
     try{await idbDo('readwrite',s=>s.put(rec))}catch(e){throw new Error('端末の保存領域がいっぱいで、曲を保存できませんでした。')}
     const so=registerMy(rec);BUFS[so.audio]=buf;prog(100);
-    box.textContent='できた！';curSong=so.id;store.set('song',so.id);
+    box.textContent='できた！';curSong=so.id;store.set('song',so.id);cfg.mode='my';store.set('mode','my');
     setTimeout(()=>openSelect(),500);
   }catch(e){
     box.textContent='うまくいきませんでした';$('impErr').textContent=(e&&e.message)||String(e);$('impBack').style.display='';
