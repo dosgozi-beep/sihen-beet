@@ -31,6 +31,19 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 #select{justify-content:safe center;overflow-x:hidden;background:rgba(0,0,0,.62);overflow-y:auto;touch-action:pan-y}
 .modes{display:flex;width:min(94vw,520px);gap:6px;margin:2px 0 8px}
 .modes .mode{letter-spacing:.06em;padding:10px 4px}.modes .mode small{letter-spacing:0;font-size:9.5px}
+.genres{display:flex;gap:6px;width:min(94vw,520px);margin:0 0 4px}
+.genres button{flex:1;font:inherit;font-size:12px;font-weight:900;letter-spacing:.04em;padding:6px 2px;border-radius:999px;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.45);color:#ddd;cursor:pointer;line-height:1.25}
+.genres button small{display:block;font-size:9px;font-weight:700;color:var(--dim);letter-spacing:0}
+.genres button.on{border-color:#fff;color:#fff;background:rgba(40,40,40,.92)}
+.genres button.gPsalm.on{border-color:var(--gold);color:var(--gold2);background:rgba(58,44,12,.92)}
+.genres button.gHymn.on{border-color:#b8d4ff;color:#d8e8ff;background:rgba(22,34,58,.92)}
+.ig{display:inline-block;font-family:'Zen Maru Gothic',sans-serif;font-size:11px;font-weight:900;letter-spacing:.06em;padding:2px 10px;border-radius:999px;margin-bottom:4px}
+.ig.psalm{color:var(--gold2);border:1px solid rgba(243,201,105,.7);background:rgba(243,201,105,.12)}
+.ig.hymn{color:#d8e8ff;border:1px solid rgba(184,212,255,.7);background:rgba(184,212,255,.12)}
+.ig.my{color:#8fe3c8;border:1px solid rgba(143,227,200,.7);background:rgba(143,227,200,.12)}
+.slide .gTag{margin-top:6px;font-family:'Zen Maru Gothic',sans-serif;font-size:10px;font-weight:900;letter-spacing:.05em;padding:2px 8px;border-radius:999px}
+.slide .gTag.psalm{color:var(--gold2);border:1px solid rgba(243,201,105,.6)}
+.slide .gTag.hymn{color:#d8e8ff;border:1px solid rgba(184,212,255,.6)}
 .mode.my.sel{border-color:#8fe3c8;background:rgba(143,227,200,.15);box-shadow:0 0 14px rgba(143,227,200,.4);color:#8fe3c8}
 .mode{flex:1;text-align:center;padding:11px 6px;border-radius:12px;border:1px solid rgba(255,255,255,.4);background:rgba(0,0,0,.4);font-size:13px;letter-spacing:.15em;cursor:pointer}
 .mode small{display:block;font-size:10px;color:var(--dim);letter-spacing:.05em;margin-top:2px;font-family:sans-serif}
@@ -295,6 +308,11 @@ body.kids #davLink{border-color:var(--kid);box-shadow:0 0 22px rgba(143,227,255,
     <div class="mode kid maru" data-m="kids">キッズモード<small>3レーン・やさしい判定</small></div>
     <div class="mode my maru" data-m="my">じぶんの曲<small>曲ファイルで あそぶ</small></div>
   </div>
+  <div class="genres maru" id="genres">
+    <button data-g="all">すべて<small id="gcAll"></small></button>
+    <button data-g="psalm" class="gPsalm">♪ 詩篇ソング<small id="gcPsalm"></small></button>
+    <button data-g="hymn" class="gHymn">✝ 讃美歌<small id="gcHymn"></small></button>
+  </div>
   <div class="carWrap">
     <button class="carNav" id="carPrev" aria-label="前の曲">‹</button>
     <div class="carousel" id="carousel"></div>
@@ -302,6 +320,7 @@ body.kids #davLink{border-color:var(--kid);box-shadow:0 0 22px rgba(143,227,255,
   </div>
   <div class="dots" id="dots"></div>
   <div class="info">
+    <div class="ig" id="iGenre"></div>
     <div class="it" id="iTitle"></div>
     <div class="ip" id="iPsalm"></div>
     <div class="im" id="iMeta"></div>
@@ -576,7 +595,21 @@ const modeEls=[...document.querySelectorAll('.mode')];
 const STD=['NORMAL','HARD','EXPERT'];
 function effDiff(so){if(kids())return 'KIDS';if(cfg.mode==='my'){const d=store.get('myDiff','NORMAL');return so.diffs&&so.diffs[d]?d:'NORMAL'}if(so.diffs[cfg.diff])return cfg.diff;return STD.filter(d=>so.diffs[d]).pop()}
 const myMode=()=>cfg.mode==='my';
-const songsFor=()=>myMode()?SONGS.filter(x=>x.custom||x.add):SONGS.filter(x=>!x.custom&&!x.add&&(kids()?x.kid:x.std)).sort((p,q)=>kids()?p.kid-q.kid:p.std-q.std);
+const HYMNS=['grace','joy','fortress'];
+const genreOf=so=>so.custom||so.add?'my':HYMNS.includes(so.id)?'hymn':'psalm';
+const GENRE={psalm:['♪ 詩篇ソング','口語訳の詩篇をそのまま歌う オリジナル曲'],hymn:['✝ 讃美歌','世界で歌いつがれてきた 名曲のアレンジ'],my:['じぶんの曲','あなたの曲ファイルから つくった譜面']};
+cfg.genre=store.get('genre','all');
+const baseList=()=>SONGS.filter(x=>!x.custom&&!x.add&&(kids()?x.kid:x.std));
+const songsFor=()=>{if(myMode())return SONGS.filter(x=>x.custom||x.add);
+  const gr={psalm:0,hymn:1};
+  return baseList().filter(x=>cfg.genre==='all'||genreOf(x)===cfg.genre).sort((p,q)=>(gr[genreOf(p)]-gr[genreOf(q)])||(p.lock?1:0)-(q.lock?1:0)||(kids()?p.kid-q.kid:p.std-q.std))};
+function renderGenres(){
+  $('genres').style.display=myMode()?'none':'flex';
+  const L=baseList(),n=g=>L.filter(x=>g==='all'||genreOf(x)===g).length;
+  $('gcAll').textContent=n('all')+'曲';$('gcPsalm').textContent='オリジナル '+n('psalm')+'曲';$('gcHymn').textContent='名曲アレンジ '+n('hymn')+'曲';
+  document.querySelectorAll('#genres button').forEach(b=>b.classList.toggle('on',b.dataset.g===cfg.genre));
+}
+document.querySelectorAll('#genres button').forEach(b=>b.addEventListener('click',()=>{cfg.genre=b.dataset.g;store.set('genre',cfg.genre);curSong=null;buildCarousel();renderGenres()}));
 let carList=[],carIdx=0;
 function buildCarousel(){
   carList=songsFor();
@@ -585,7 +618,8 @@ function buildCarousel(){
   carList.forEach((so,k)=>{
     const sl=document.createElement('div');sl.className='slide';
     const img=so.disc?'<img src="disc_'+so.id+'.jpg" alt="">':'';
-    sl.innerHTML='<div class="disc" style="--c1:'+so.c[0]+';--c2:'+so.c[1]+'"><div class="ph"></div>'+(so.disc?img:'<div class="glyph"><b>'+so.num+'</b><i>'+(so.glyph||'PSALM')+'</i></div>')+'</div>'+(so.lock?'<div class="lockTag">COMING SOON</div>':'');
+    const gq=genreOf(so);
+    sl.innerHTML='<div class="disc" style="--c1:'+so.c[0]+';--c2:'+so.c[1]+'"><div class="ph"></div>'+(so.disc?img:'<div class="glyph"><b>'+so.num+'</b><i>'+(so.glyph||'PSALM')+'</i></div>')+'</div>'+(so.lock?'<div class="lockTag">COMING SOON</div>':(gq!=='my'&&cfg.genre==='all'?'<div class="gTag '+gq+'">'+GENRE[gq][0]+'</div>':''));
     sl.addEventListener('click',()=>goSlide(k));
     car.appendChild(sl);$('dots').appendChild(document.createElement('i'));
   });
@@ -615,6 +649,7 @@ function selectSlide(k){
 }
 function renderInfo(){
   const so=songById(curSong),ch=CHS[so.id];
+  {const gq=genreOf(so),el=$('iGenre');if(so.add){el.style.display='none'}else{el.style.display='';el.className='ig '+gq;el.textContent=GENRE[gq][0]+'　'+GENRE[gq][1]}}
   $('iTitle').textContent=so.title;$('iTitle').className='it'+(so.maru?' maru':'');
   $('iPsalm').textContent=so.psalm;$('iMeta').textContent=so.meta||'';
   const ds=$('iDiffs');ds.innerHTML='';
@@ -863,7 +898,7 @@ addEventListener('keydown',e=>{if(mode!=='select')return;if(e.key==='ArrowLeft')
 addEventListener('resize',()=>{if(mode==='select')goSlide(carIdx,true)});
 function applyMode(){
   document.body.classList.toggle('kids',kids());
-  modeEls.forEach(e=>e.classList.toggle('sel',e.dataset.m===cfg.mode));
+  modeEls.forEach(e=>e.classList.toggle('sel',e.dataset.m===cfg.mode));renderGenres();
   const k=kids()?'spdK':'spd',el=$('spd');el.value=cfg[k];$('spdO').textContent=(+cfg[k]).toFixed(1);
   $('startBtn').textContent=kids()?'スタート！':'START';$('startBtn').classList.toggle('maru',kids());
   buildCarousel();
