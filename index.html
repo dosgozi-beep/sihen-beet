@@ -53,7 +53,6 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 .card.song{cursor:pointer;opacity:.6}
 .card.sel{opacity:1;border-color:var(--gold);box-shadow:0 0 20px rgba(243,201,105,.25)}
 body.kids .card.sel{border-color:var(--kid);box-shadow:0 0 20px rgba(143,227,255,.3)}
-#hpFill.stars{background:linear-gradient(90deg,#8fe3ff,#fff8c8);box-shadow:0 0 8px #8fe3ff}
 .card .t{font-weight:900;font-size:20px;letter-spacing:.06em}
 .card .p{font-family:'Shippori Mincho B1',serif;font-size:13px;color:var(--gold2);margin-top:2px;letter-spacing:.2em}
 .card .meta{font-size:11px;color:var(--dim);margin-top:6px;letter-spacing:.1em}
@@ -129,10 +128,36 @@ body.kids #startBtn{color:#06202a;background:linear-gradient(180deg,#f0fdff,#8fe
 @keyframes shim{to{background-position:-200% 0}}
 #comboTag.t1{color:#ffdf8a}#comboTag.t2{color:#ffdf8a;text-shadow:0 0 8px #f3c969}
 #comboTag.t3{background:linear-gradient(90deg,#ff9ad5,#ffdf8a,#9fe3ff,#ff9ad5);background-size:200%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shim .8s linear infinite}
-#hpWrap{flex:1;margin-left:6px}
-#hpWrap .lbl{font-size:9px;letter-spacing:.3em;color:var(--dim);display:flex;justify-content:space-between}
-#hpBar{height:7px;border:1px solid rgba(255,255,255,.6);border-radius:4px;overflow:hidden;margin-top:3px;background:rgba(0,0,0,.4)}
-#hpFill{height:100%;width:100%;background:linear-gradient(90deg,#fff,#f3c969);box-shadow:0 0 8px #f3c969;transition:width .12s}
+#hpWrap{flex:1;margin-left:4px;position:relative;--a:#fff;--b:#f3c969;--gl:243,201,105}
+#hpWrap.g1{--a:#fff3c9;--b:#f3c969}
+#hpWrap.g2{--a:#ffd76a;--b:#ff9a3c;--gl:255,154,60}
+#hpWrap.g3{--a:#ffb03c;--b:#ff4d7a;--gl:255,77,122}
+#hpWrap.st{--a:#e8fbff;--b:#8fe3ff;--gl:143,227,255}
+#hpWrap.st.g2{--a:#bfefff;--b:#7aa8ff;--gl:122,168,255}
+#hpWrap.st.g3{--a:#9fe3ff;--b:#c58cff;--gl:197,140,255}
+#hpWrap .lbl{font-size:10px;font-weight:900;letter-spacing:.12em;color:#eee;display:flex;justify-content:space-between;align-items:baseline;text-shadow:0 0 4px #000}
+#hpPct{font-family:Orbitron,sans-serif;font-size:13px;color:var(--b);text-shadow:0 0 8px rgba(var(--gl),.9);display:inline-block}
+#hpPct.bump{animation:pbump .25s ease-out}
+@keyframes pbump{0%{transform:scale(1.45)}100%{transform:scale(1)}}
+#hpBar{position:relative;height:13px;border:1px solid rgba(255,255,255,.75);border-radius:8px;margin-top:3px;background:rgba(0,0,0,.55);box-shadow:inset 0 1px 3px rgba(0,0,0,.8)}
+#hpFill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:7px;overflow:hidden;background:linear-gradient(90deg,var(--a),var(--b));box-shadow:0 0 10px rgba(var(--gl),.9);transition:width .18s cubic-bezier(.2,1.4,.4,1)}
+#hpFill .shine{position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(255,255,255,.38) 0 5px,rgba(255,255,255,0) 5px 12px);background-size:26px 100%;animation:stripes .6s linear infinite}
+#hpFill:after{content:'';position:absolute;left:0;right:0;top:1px;height:35%;border-radius:6px;background:rgba(255,255,255,.45)}
+@keyframes stripes{to{background-position:26px 0}}
+#hpBar .tk{position:absolute;top:-2px;bottom:-2px;width:2px;margin-left:-1px;background:rgba(255,255,255,.35);border-radius:1px;transition:background .2s,box-shadow .2s}
+#hpBar .tk.on{background:#fff;box-shadow:0 0 6px #fff,0 0 12px rgba(var(--gl),1)}
+#hpHead{position:absolute;top:50%;left:0;width:17px;height:17px;margin:-8.5px 0 0 -8.5px;border-radius:50%;background:radial-gradient(circle,#fff 0 30%,rgba(var(--gl),.9) 55%,rgba(var(--gl),0) 72%);transition:left .18s cubic-bezier(.2,1.4,.4,1);pointer-events:none}
+#hpBar.hit{animation:ghit .28s ease-out}
+@keyframes ghit{0%{transform:scaleY(1.45);filter:brightness(1.8)}100%{transform:scaleY(1);filter:brightness(1)}}
+#hpWrap.g3 #hpBar{animation:gwarm .5s ease-in-out infinite alternate}
+@keyframes gwarm{to{box-shadow:0 0 12px rgba(var(--gl),.9)}}
+#hpWrap.max #hpFill{background:linear-gradient(90deg,#ff9ad5,#ffdf8a,#9fe3ff,#c9a0ff,#ff9ad5);background-size:200% 100%;animation:shim .8s linear infinite}
+#hpWrap.max #hpBar{border-color:#fff;box-shadow:0 0 14px #fff,0 0 26px rgba(255,223,138,.9)}
+#hpWrap.max #hpPct{color:#fff;text-shadow:0 0 10px #ffdf8a,0 0 18px #ff9ad5}
+.gPop{position:absolute;top:18px;transform:translateX(-50%);font-family:Orbitron,sans-serif;font-weight:900;font-size:15px;color:#fff;text-shadow:0 0 8px rgba(var(--gl),1),0 0 3px #000;pointer-events:none;animation:gpop 1s ease-out forwards;white-space:nowrap}
+.gPop.big{font-size:22px}
+@keyframes gpop{0%{opacity:0;transform:translate(-50%,6px) scale(.6)}20%{opacity:1;transform:translate(-50%,0) scale(1.25)}70%{opacity:1;transform:translate(-50%,8px) scale(1)}100%{opacity:0;transform:translate(-50%,16px) scale(1)}}
+#homeBtn{pointer-events:auto;width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.6);background:rgba(0,0,0,.5);color:#fff;font-size:17px;font-family:inherit;line-height:1;margin-left:-4px}
 #lyric{margin-top:10px;text-align:center;font-family:'Shippori Mincho B1',serif;font-weight:800;font-size:clamp(14px,4.2vw,22px);letter-spacing:.08em;text-shadow:0 0 12px rgba(0,0,0,1),0 0 4px rgba(0,0,0,1),0 0 18px rgba(255,255,255,.35);min-height:1.6em;transition:opacity .35s,transform .35s}
 #lyric.out{opacity:0;transform:translateY(-6px)}
 #pause,#result{background:rgba(0,0,0,.72)}
@@ -184,7 +209,24 @@ body.kids #startBtn{color:#06202a;background:linear-gradient(180deg,#f0fdff,#8fe
 .rkRow .nm small{display:block;font-size:10px;color:var(--dim);font-weight:400;font-family:sans-serif}
 .rkRow .sc{font-family:Orbitron,sans-serif;font-weight:900;font-size:15px;text-align:right}
 .rkRow .sc small{display:block;font-size:9px;color:var(--gold2);letter-spacing:.1em}
-.rkRow.r1 .no{color:#ffd76a}.rkRow.r2 .no{color:#d8e2ee}.rkRow.r3 .no{color:#e0a070}
+.rkRow.r1 .no,.rkRow.r2 .no,.rkRow.r3 .no{font-size:22px}
+.rkRow.r1{background:linear-gradient(90deg,rgba(255,215,106,.24),rgba(255,215,106,0) 80%);border-radius:10px;padding:11px 2px}
+.rkRow.r1 .nm{font-size:16px}.rkRow.r1 .sc{font-size:18px;color:#ffe08a;text-shadow:0 0 10px rgba(255,215,106,.6)}
+.rkRow.r2{background:linear-gradient(90deg,rgba(216,226,238,.16),rgba(216,226,238,0) 80%);border-radius:10px}
+.rkRow.r3{background:linear-gradient(90deg,rgba(224,160,112,.16),rgba(224,160,112,0) 80%);border-radius:10px}
+.mk{display:inline-block;font-size:8.5px;font-weight:900;letter-spacing:.08em;padding:1px 6px;border-radius:999px;margin-top:2px}
+.mk.ap{color:#2a1a00;background:linear-gradient(90deg,#ff9ad5,#ffdf8a,#9fe3ff)}
+.mk.fc{color:#2a1a00;background:#ffdf8a}
+.mk.rk{color:var(--gold2);border:1px solid rgba(243,201,105,.5)}
+#rkMe{width:min(94vw,440px);display:none;align-items:center;gap:10px;margin:0 0 8px;padding:9px 12px;border-radius:12px;border:1px solid var(--gold);background:linear-gradient(90deg,rgba(243,201,105,.2),rgba(0,0,0,.5));font-family:'Zen Maru Gothic',sans-serif}
+#rkMe .l{font-size:11px;color:var(--gold2);font-weight:900;line-height:1.3}
+#rkMe .v{flex:1;text-align:right;font-family:Orbitron,sans-serif;font-weight:900;font-size:17px}
+#rkMe .r{font-size:12px;font-weight:900;color:#fff;background:rgba(243,201,105,.3);border-radius:8px;padding:3px 8px;white-space:nowrap}
+.rkTabs button.d-NORMAL.on{border-color:#8fd8ff;color:#8fd8ff;background:rgba(143,216,255,.16)}
+.rkTabs button.d-HARD.on{border-color:#ffd76a;color:#ffd76a;background:rgba(255,215,106,.16)}
+.rkTabs button.d-EXPERT.on{border-color:#ff8fb8;color:#ff8fb8;background:rgba(255,143,184,.16)}
+.rkTabs button.d-KIDS.on{border-color:var(--kid);color:var(--kid);background:rgba(143,227,255,.16)}
+.rkEmpty .btn{margin-top:12px;font-size:12px;padding:8px 16px}
 .rkRow.me{background:rgba(243,201,105,.16);border-radius:10px;animation:tapPulse 1.4s ease-in-out infinite}
 .rkEmpty{text-align:center;color:var(--dim);padding:22px 0;font-family:'Zen Maru Gothic',sans-serif;font-size:13px}
 .rkName{display:flex;align-items:center;gap:8px;width:min(94vw,440px);margin:0 0 8px;font-family:'Zen Maru Gothic',sans-serif;font-size:13px}
@@ -199,10 +241,18 @@ body.kids #startBtn{color:#06202a;background:linear-gradient(180deg,#f0fdff,#8fe
 .rkScope button{font-size:12px;letter-spacing:.05em}
 .rkRow.gap{justify-content:center;color:var(--dim);font-size:12px;padding:4px 0}
 #shareImg{width:min(88vw,420px);border-radius:12px;box-shadow:0 0 30px rgba(243,201,105,.35);margin-top:2vh;user-select:auto;-webkit-user-select:auto;-webkit-touch-callout:default}
-#pause .btn{width:220px;margin:7px}
-#pause h2{letter-spacing:.5em;font-weight:500}
+#pause .btn{width:250px;margin:6px;font-family:'Zen Maru Gothic',sans-serif;font-weight:900;letter-spacing:.08em}
+#pause .btn small{display:block;font-family:Orbitron,sans-serif;font-size:9px;font-weight:400;letter-spacing:.25em;opacity:.65;margin-top:1px}
+#pause h2{letter-spacing:.3em;font-weight:500;margin-bottom:4px}
+#pauseSong{font-size:12px;color:var(--dim);letter-spacing:.1em;margin-bottom:14px;text-align:center}
+#pause hr{width:250px;border:0;border-top:1px solid rgba(255,255,255,.2);margin:8px 0}
+#pause.ask #quitBtn,#pause.ask #titleBtn{border-color:var(--gold);color:var(--gold2)}
 #result{justify-content:flex-start;overflow-y:auto;touch-action:pan-y}
-#rTitle{font-size:clamp(28px,9vw,46px);font-weight:900;letter-spacing:.1em;margin:2vh 0 2px;text-align:center}
+#rTitle{font-size:clamp(28px,9vw,46px);font-weight:900;letter-spacing:.1em;margin:0 0 2px;text-align:center;line-height:1.1}
+#rSong{display:flex;align-items:center;justify-content:center;gap:8px;margin:1.5vh 0 4px;max-width:94vw}
+#rSong b{font-size:14px;letter-spacing:.08em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dchip{flex:none;font-family:Orbitron,sans-serif;font-size:10px;font-weight:900;letter-spacing:.12em;padding:2px 8px;border-radius:999px;border:1px solid currentColor}
+.dchip.NORMAL{color:#8fd8ff}.dchip.HARD{color:#ffd76a}.dchip.EXPERT{color:#ff8fb8}.dchip.KIDS{color:var(--kid);font-family:'Zen Maru Gothic',sans-serif}
 #rTitle.win{color:var(--gold2);text-shadow:0 0 22px rgba(243,201,105,.8)}
 #rSub{font-family:'Shippori Mincho B1',serif;font-size:13px;color:var(--dim);letter-spacing:.2em;text-align:center;margin-bottom:14px}
 .davBox{display:flex;align-items:flex-end;gap:6px;width:100%;margin:6px 0 4px}
@@ -233,10 +283,33 @@ body.kids #davLink{border-color:var(--kid);box-shadow:0 0 22px rgba(143,227,255,
 #rStars i{font-style:normal;color:rgba(255,255,255,.18)}
 #rStars i.on{color:#ffe08a;text-shadow:0 0 16px rgba(255,224,138,.9)}
 .rbox{width:min(94vw,440px);border:1px solid rgba(255,255,255,.4);border-radius:14px;padding:16px;background:rgba(0,0,0,.7)}
-.rtop{display:flex;align-items:center;justify-content:space-between}
-#rRank{font-size:64px;font-weight:900;line-height:1;color:var(--gold2);text-shadow:0 0 20px rgba(243,201,105,.7)}
-#rScore{font-size:30px;font-weight:900;font-variant-numeric:tabular-nums}
-#rBadge{font-size:11px;letter-spacing:.25em;color:var(--gold2);text-align:right;margin-top:4px;min-height:14px}
+.rtop{display:flex;align-items:center;justify-content:space-between;gap:10px}
+#rRank{font-size:72px;font-weight:900;line-height:1;color:var(--gold2);text-shadow:0 0 20px rgba(243,201,105,.7);min-width:70px;text-align:center}
+#result.on #rRank{animation:stamp .55s .5s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes stamp{0%{opacity:0;transform:scale(2.6) rotate(-12deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
+.rsc{text-align:right;min-width:0}
+#rScore{font-size:34px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.1}
+#rBest{font-size:11px;color:var(--dim);margin-top:4px;letter-spacing:.05em;font-family:'Zen Maru Gothic',sans-serif;font-weight:700}
+#rBest.new{color:#fff;display:inline-block;padding:2px 8px;border-radius:999px;background:linear-gradient(90deg,#ff7aa8,#ffb03c);animation:tapPulse 1.2s ease-in-out infinite}
+#rBadge{font-size:11px;font-weight:900;letter-spacing:.2em;color:var(--gold2);text-align:right;margin-top:4px;min-height:14px}
+.jbar{display:flex;height:10px;border-radius:5px;overflow:hidden;margin:14px 0 8px;background:rgba(255,255,255,.08)}
+.jbar i{display:block;height:100%;width:0;transition:width .8s ease-out}
+.jbar i.p{background:#ffdf8a}.jbar i.g{background:#ffb3c6}.jbar i.d{background:#9fe3ff}.jbar i.m{background:#666}
+.jgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.jt{border-radius:10px;background:rgba(255,255,255,.06);border-top:3px solid;padding:6px 2px 5px;text-align:center}
+.jt span{display:block;font-size:9px;font-weight:900;letter-spacing:.08em;white-space:nowrap}
+.jt b{display:block;font-size:22px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.2}
+.jt small{display:block;font-size:8.5px;color:var(--dim);min-height:10px;white-space:nowrap}
+.jt.p{border-color:#ffdf8a;color:#ffdf8a}.jt.g{border-color:#ffb3c6;color:#ffb3c6}.jt.d{border-color:#9fe3ff;color:#9fe3ff}.jt.m{border-color:#777;color:#aaa}
+.jt b{color:#fff}
+.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}
+.sgrid>div{border-radius:10px;background:rgba(255,255,255,.06);padding:6px 2px;text-align:center}
+.sgrid span{display:block;font-size:9px;letter-spacing:.08em;color:var(--dim);white-space:nowrap}
+.sgrid b{display:block;font-size:16px;font-weight:900;font-variant-numeric:tabular-nums}
+.rDock{position:sticky;bottom:calc(-1 * env(safe-area-inset-bottom) - 16px);margin-top:auto;width:calc(100% + 36px);display:flex;justify-content:center;gap:10px;padding:14px 18px calc(env(safe-area-inset-bottom) + 14px);background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.9) 35%);z-index:3}
+.rDock .btn{background:rgba(12,12,16,.96);flex:1;max-width:215px;font-family:'Zen Maru Gothic',sans-serif;font-weight:900;letter-spacing:.06em}
+.rDock .btn small{display:block;font-family:Orbitron,sans-serif;font-size:9px;font-weight:400;letter-spacing:.25em;opacity:.7}
+#rProg{width:min(94vw,440px)}
 .jrow{display:flex;justify-content:space-between;font-size:13px;letter-spacing:.12em;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.12)}
 .jrow:last-child{border:0}
 .jrow b{font-variant-numeric:tabular-nums}
@@ -286,6 +359,7 @@ body.kids #davLink{border-color:var(--kid);box-shadow:0 0 22px rgba(143,227,255,
   <div class="rkSong"><button id="rkPrev" aria-label="前の曲">‹</button><div><b id="rkTitle"></b><small id="rkPsalm"></small></div><button id="rkNext" aria-label="次の曲">›</button></div>
   <div class="rkTabs rkScope" id="rkScope" style="display:none"><button data-s="online">🌏 全国</button><button data-s="local">📱 この端末</button></div>
   <div class="rkTabs" id="rkTabs"></div>
+  <div id="rkMe"></div>
   <label class="rkName"><span id="rkNameLbl">プレイヤー名</span><input id="rkName" maxlength="10" autocomplete="off" enterkeyhint="done"></label>
   <div class="rkList" id="rkList"></div>
   <div class="rkNote" id="rkNote">この端末で遊んだ人のランキングです（各曲・難易度ごとに上位10件）。<br>家族や友だちと同じ端末で、名前を変えて遊んでみよう！</div>
@@ -340,35 +414,46 @@ body.kids #davLink{border-color:var(--kid);box-shadow:0 0 22px rgba(143,227,255,
 
 <div id="hud">
   <div class="row">
-    <button id="pauseBtn">❚❚</button>
+    <button id="pauseBtn" aria-label="一時停止">❚❚</button>
+    <button id="homeBtn" aria-label="もどる">⌂</button>
     <div class="scoreBox"><div id="score">0000000</div><div id="comboTag"></div></div>
-    <div id="hpWrap"><div class="lbl"><span id="hpLbl">GOLIATH</span><span id="hpPct">100%</span></div><div id="hpBar"><div id="hpFill"></div></div></div>
+    <div id="hpWrap"><div class="lbl"><span id="hpLbl">GOLIATH</span><span id="hpPct">0%</span></div><div id="hpBar"><div id="hpFill"><i class="shine"></i></div><b class="tk" style="left:25%"></b><b class="tk" style="left:50%"></b><b class="tk" style="left:75%"></b><div id="hpHead"></div></div></div>
   </div>
   <div id="lyric"></div>
 </div>
 
 <div id="pause" class="screen">
-  <h2>PAUSE</h2>
-  <button class="btn gold" id="resumeBtn">RESUME</button>
-  <button class="btn" id="retryBtn">RETRY</button>
-  <button class="btn" id="quitBtn">SONG SELECT</button>
+  <h2 id="pauseH">PAUSE</h2>
+  <div id="pauseSong"></div>
+  <button class="btn gold" id="resumeBtn">▶ つづける<small>RESUME</small></button>
+  <button class="btn" id="retryBtn">↻ さいしょから<small>RETRY</small></button>
+  <hr>
+  <button class="btn" id="quitBtn">♪ 曲選択にもどる<small>SONG SELECT</small></button>
+  <button class="btn" id="titleBtn">⌂ タイトルにもどる<small>TITLE</small></button>
 </div>
 
 <div id="result" class="screen">
+  <div id="rSong"><b id="rSongT"></b><span class="dchip" id="rDiff"></span></div>
   <div id="rTitle">VICTORY</div>
   <div id="rSub"></div>
   <div id="rStars"><i>★</i><i>★</i><i>★</i></div>
   <div class="rbox">
-    <div class="rtop"><div id="rRank">S</div><div><div id="rScore">0</div><div id="rBadge"></div></div></div>
-    <div style="height:10px"></div>
-    <div class="jrow"><span style="color:#ffdf8a" id="lP">PERFECT</span><b id="rP">0</b></div>
-    <div class="jrow"><span style="color:#ffb3c6" id="lG">GREAT</span><b id="rG">0</b></div>
-    <div class="jrow"><span style="color:#9fe3ff" id="lD">GOOD</span><b id="rD">0</b></div>
-    <div class="jrow"><span style="color:#999" id="lM">MISS</span><b id="rM">0</b></div>
-    <div class="jrow"><span id="lC">MAX COMBO</span><b id="rC">0</b></div>
-    <div class="jrow"><span id="lS">SHEEP</span><b id="rS">0</b></div>
-    <div class="jrow"><span id="lGo">GOLIATH</span><b id="rGo">0</b></div>
+    <div class="rtop"><div id="rRank">S</div><div class="rsc"><div id="rScore">0</div><div id="rBest"></div><div id="rBadge"></div></div></div>
+    <div class="jbar" id="jBar"><i class="p"></i><i class="g"></i><i class="d"></i><i class="m"></i></div>
+    <div class="jgrid">
+      <div class="jt p"><span id="lP">PERFECT</span><b id="rP">0</b><small id="rJ"></small></div>
+      <div class="jt g"><span id="lG">GREAT</span><b id="rG">0</b><small></small></div>
+      <div class="jt d"><span id="lD">GOOD</span><b id="rD">0</b><small></small></div>
+      <div class="jt m"><span id="lM">MISS</span><b id="rM">0</b><small></small></div>
+    </div>
+    <div class="sgrid">
+      <div><span id="lC">MAX COMBO</span><b id="rC">0</b></div>
+      <div><span id="lS">SHEEP</span><b id="rS">0</b></div>
+      <div><span id="lGo">GOLIATH</span><b id="rGo">0</b></div>
+    </div>
   </div>
+  <div class="rProg" id="rProg"></div>
+  <div class="rbtns" style="margin-top:10px"><button class="btn" id="rRankBtn">🏆 ランキング</button><button class="btn" id="shareBtn">📷 シェア画像</button></div>
   <a id="davLink" href="https://claude.ai/code/artifact/83770ce2-ed64-43bb-be1b-0fc3e909de2f" target="_blank" rel="noopener">
     <div class="dvHead">DAVI×DAVI</div>
     <div class="davBox">
@@ -377,9 +462,7 @@ body.kids #davLink{border-color:var(--kid);box-shadow:0 0 22px rgba(143,227,255,
     </div>
     <div class="dvFoot"><span id="davAskTxt">ぼくについて知りたい人はこちら</span><i>›</i></div>
   </a>
-  <div class="rProg" id="rProg"></div>
-  <div class="rbtns" style="margin-top:8px"><button class="btn" id="rRankBtn">🏆 ランキング</button><button class="btn" id="shareBtn">📷 シェア画像</button></div>
-  <div class="rbtns"><button class="btn gold" id="rRetry">RETRY</button><button class="btn" id="rBack">SONG SELECT</button></div>
+  <div class="rDock"><button class="btn gold" id="rRetry">↻ もういちど<small>RETRY</small></button><button class="btn" id="rBack">♪ 曲選択へ<small>SONG SELECT</small></button></div>
 </div>
 
 <script>
@@ -581,6 +664,7 @@ function resetFilter(){if(!A.filter)return;const w=actx.currentTime;A.filter.fre
 // ================= TITLE =================
 let booting=false;
 $('title').addEventListener('pointerup',async()=>{
+  if(titleBack){titleBack=false;openSelect();return}
   if(booting)return;booting=true;
   try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
   try{actx=new (window.AudioContext||window.webkitAudioContext)();const s=actx.createBufferSource();s.buffer=actx.createBuffer(1,1,22050);s.connect(actx.destination);s.start();buildGraph();pvUnlockAll();if(actx.state==='suspended')await actx.resume()}catch(e){}
@@ -933,7 +1017,7 @@ function startGame(){
   D=effDiff(SONG);buildHarp(CH.scale);
   if(A.dly){A.dly.delayTime.value=Math.min(1.4,0.75*60/CH.bpm)}
   dispScore=0;hudTier=-1;notes&&0;if(A.shelf){A.shelf.gain.value=0;A.lowsh.gain.value=0}
-  $('hpLbl').textContent=SONG.boss==='stars'?(D==='KIDS'?SONG.g.kid:SONG.g.std):'GOLIATH';$('hpFill').classList.toggle('stars',SONG.boss==='stars');
+  $('hpLbl').textContent=SONG.boss==='stars'?(D==='KIDS'?SONG.g.kid:SONG.g.std):(D==='KIDS'?'ゴリアテを たおせ！':'⚔ GOLIATH ブレイク');gauge.last=-1;gauge.ms=0;$('hpWrap').className=SONG.boss==='stars'?'st':'';document.querySelectorAll('#hpBar .tk').forEach(e=>e.classList.remove('on'));
   NL=(CH.lanes&&CH.lanes[D])||6;
   JW=D==='KIDS'?{P:.085,G:.135,D:.19}:{P:.050,G:.090,D:.130};
   const raw=CH.charts[D];
@@ -965,7 +1049,10 @@ function stopSrc(){if(src){try{src.stop()}catch(e){}src.disconnect();src=null}fe
 function songTime(){return actx.currentTime-startAt-(actx.outputLatency||actx.baseLatency||0)-cfg.ofs/1000}
 const speed=()=>D==='KIDS'?cfg.spdK:cfg.spd;
 
-function pauseGame(){if(mode!=='play')return;mode='pause';actx.suspend();show('pause')}
+function pauseGame(ask){if(mode!=='play')return;mode='pause';actx.suspend();$('pause').classList.toggle('ask',!!ask);$('pauseH').textContent=ask?(D==='KIDS'?'もどる？':'もどりますか？'):'PAUSE';$('pauseSong').textContent=SONG.title+' ・ '+(D==='KIDS'?'キッズ':D);show('pause')}
+$('homeBtn').addEventListener('pointerdown',e=>{e.stopPropagation();pauseGame(true)});
+let titleBack=false;
+$('titleBtn').addEventListener('click',()=>{stopSrc();actx.resume();stopPreview();clearTimeout(prevTimer);$('hud').classList.remove('on');mode='title';titleBack=true;show('title')});
 $('pauseBtn').addEventListener('pointerdown',e=>{e.stopPropagation();pauseGame()});
 $('resumeBtn').addEventListener('click',()=>{show('none');actx.resume().then(()=>{mode='play'})});
 $('retryBtn').addEventListener('click',()=>{actx.resume().then(startGame)});
@@ -1058,6 +1145,27 @@ function vivid(){ // the better you play, the brighter and punchier the song sou
 const POPS={std:['ナイス！','いいぞ！','その調子！','完璧だ！','主をたたえよ！','立琴よ、さめよ！','もっといこう！'],kids:['すごい！','いいね！','やったー！','じょうず！','たのしいね！','ノリノリ！']};
 function davSayPop(txt){const L=D==='KIDS'?POPS.kids:POPS.std;davPop={txt:txt||L[Math.floor(Math.random()*L.length)],t:performance.now()}}
 function hudBurst(){const r=$('score').getBoundingClientRect();for(let i=0;i<26;i++){const a=Math.random()*Math.PI*2,v=60+Math.random()*160;hudSparks.push({x:r.left+Math.random()*r.width,y:r.top+r.height/2,vx:Math.cos(a)*v,vy:Math.sin(a)*v-60,t:performance.now(),c:Math.random()<.5?'255,223,138':'255,255,255'})}}
+// ---------- gauge: fills as you hit in time; flashes on each gain, celebrates every quarter ----------
+const gauge={last:-1,ms:0};
+function gaugePop(txt,big,fx){const w=$('hpWrap'),e=document.createElement('span');e.className='gPop'+(big?' big':'');e.textContent=txt;e.style.left=Math.min(88,Math.max(12,fx*100))+'%';w.appendChild(e);setTimeout(()=>e.remove(),1050)}
+function gaugeSparks(fx,n){const r=$('hpBar').getBoundingClientRect(),x=r.left+r.width*fx,y=r.top+r.height/2,gl=getComputedStyle($('hpWrap')).getPropertyValue('--gl').trim()||'255,223,138';
+  for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,v=50+Math.random()*150;hudSparks.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-40,t:performance.now(),c:Math.random()<.5?gl:'255,255,255'})}}
+function updGauge(f){
+  f=Math.max(0,Math.min(1,f));const pct=f>=1?100:Math.floor(f*100),w=$('hpWrap');
+  $('hpFill').style.width=(f*100)+'%';$('hpHead').style.left=(f*100)+'%';
+  const pe=$('hpPct');pe.textContent=f>=1?'MAX!':pct+'%';
+  w.classList.toggle('g1',f>=.25&&f<.5);w.classList.toggle('g2',f>=.5&&f<.75);w.classList.toggle('g3',f>=.75&&f<1);w.classList.toggle('max',f>=1);
+  if(gauge.last>=0&&f>gauge.last+1e-6){const b=$('hpBar');b.classList.remove('hit');void b.offsetWidth;b.classList.add('hit');pe.classList.remove('bump');void pe.offsetWidth;pe.classList.add('bump');gaugeSparks(f,3)}
+  const ms=f>=1?4:Math.floor(f*4);
+  if(ms>gauge.ms&&gauge.last>=0){
+    const K=D==='KIDS';
+    for(let k=gauge.ms+1;k<=ms;k++){if(k<4){const tk=document.querySelectorAll('#hpBar .tk')[k-1];if(tk)tk.classList.add('on')}}
+    if(ms>=4){gaugePop(K?'やったー！':SONG.boss==='stars'?'MAX!!':'BREAK!!',true,.5);gaugeSparks(1,40);hudBurst()}
+    else{gaugePop(ms*25+'%'+(ms===3?(K?' もうすこし！':' あと少し！'):''),false,ms/4);gaugeSparks(ms/4,18);try{const t0=actx.currentTime;voice(ms*2+2,.25,t0,{sparkle:true})}catch(e){}}
+  }
+  if(gauge.last<0)document.querySelectorAll('#hpBar .tk').forEach((e,i)=>e.classList.toggle('on',f>=(i+1)/4));
+  gauge.ms=Math.max(gauge.ms,ms);gauge.last=f;
+}
 function comboTier(c){const T=D==='KIDS'?[5,15,40]:[20,50,100];return c>=T[2]?3:c>=T[1]?2:c>=T[0]?1:0}
 function updHUD(){
   if(!st)return;
@@ -1066,7 +1174,7 @@ function updHUD(){
   el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump');
   const lab=D==='KIDS'?['','いいかんじ！','ノリノリ！','さいこう！！']:['','GROOVE','HYPER','DIVINE'];
   $('comboTag').textContent=st.combo>=3?(lab[tier]?lab[tier]+'  ':'')+st.combo+' COMBO':'';
-  const h=hp(),f=SONG.boss==='stars'?1-h:h;$('hpFill').style.width=(f*100)+'%';$('hpPct').textContent=(SONG.boss==='stars'?Math.floor(f*100):Math.ceil(f*100))+'%';
+  const h=hp();updGauge(1-h);
   if(h<=0&&!st.goliathDown){st.goliathDown=true;st.downAt=performance.now();gFlash=1}
 }
 function laneAt(x){const L=layout();const rel=(x-L.left)/L.lw;if(rel<-0.6||rel>NL+0.6)return -1;return Math.max(0,Math.min(NL-1,Math.floor(rel)))}
@@ -1300,16 +1408,16 @@ async function sbBoard(song,diff,force){
 document.querySelectorAll('#rkScope button').forEach(b=>b.addEventListener('click',()=>{RK.scope=b.dataset.s;renderRank()}));
 function rkRow(i,name,sub,score,mark,me){
   const r=document.createElement('div');r.className='rkRow'+(i<3?' r'+(i+1):'')+(me?' me':'');
-  const no=document.createElement('div');no.className='no';no.textContent=i<3?['👑','2','3'][i]:String(i+1);if(i===0)no.style.fontSize='18px';
-  const nm=document.createElement('div');nm.className='nm';nm.textContent=name||'ななしの羊飼い';
+  const no=document.createElement('div');no.className='no';no.textContent=i<3?['🥇','🥈','🥉'][i]:String(i+1);
+  const nm=document.createElement('div');nm.className='nm';nm.textContent=(name||'ななしの羊飼い')+(me?'（あなた）':'');
   const dt=document.createElement('small');dt.textContent=sub;nm.appendChild(dt);
   const sc=document.createElement('div');sc.className='sc';sc.textContent=(+score).toLocaleString();
-  const mk=document.createElement('small');mk.textContent=mark==='AP'?'ALL PERFECT':mark==='FC'?'FULL COMBO':(mark||'');sc.appendChild(mk);
+  if(mark){const mk=document.createElement('span');mk.className='mk '+(mark==='AP'?'ap':mark==='FC'?'fc':'rk');mk.textContent=mark==='AP'?'ALL PERFECT':mark==='FC'?'FULL COMBO':mark;const w=document.createElement('div');w.appendChild(mk);sc.appendChild(w)}
   r.append(no,nm,sc);return r;
 }
 function renderOnline(so){
   const box=$('rkList'),k=so.id+':'+RK.diff,tok=k+Math.random();RK.tok=tok;
-  box.innerHTML='<div class="rkEmpty">全国ランキングを読みこみ中…</div>';
+  box.innerHTML='<div class="rkEmpty">全国ランキングを読みこみ中…</div>';rkMeCard(so,true);
   $('rkNote').innerHTML='全国のプレイヤーの自己ベスト（各曲・難易度ごとに上位50人）です。<br>名前を変えると、全国ランキングの名前も変わります。';
   sbBoard(so.id,RK.diff).then(rows=>{
     if(RK.tok!==tok)return;box.innerHTML='';
@@ -1320,7 +1428,18 @@ function renderOnline(so){
     const mr=ONL.myRank[k];
     if(!seen&&mr){const g=document.createElement('div');g.className='rkRow gap';g.textContent='…';box.appendChild(g);
       box.appendChild(rkRow(mr.r-1,pName()||'あなた','あなたの記録',mr.s,mr.m,true))}
-  }).catch(()=>{if(RK.tok!==tok)return;box.innerHTML='<div class="rkEmpty">全国ランキングにつながりませんでした。<br>通信できる場所で もう一度ひらいてね。</div>'});
+  }).catch(()=>{if(RK.tok!==tok)return;box.innerHTML='<div class="rkEmpty">📡 全国ランキングに つながりませんでした。<br>通信できる場所で もう一度ひらいてね。<br><button class="btn" id="rkToLocal">📱 この端末のランキングを見る</button></div>';$('rkToLocal').addEventListener('click',()=>{RK.scope='local';renderRank()})});
+}
+function rkMeCard(so,online){
+  const el=$('rkMe'),k=so.id+':'+RK.diff,b=store.get('best2',{})[k],mr=online?ONL.myRank[k]:null;
+  if(!b){el.style.display='none';return}
+  el.style.display='flex';el.innerHTML='';
+  const l=document.createElement('div');l.className='l';l.innerHTML='あなたの<br>自己ベスト';
+  const v=document.createElement('div');v.className='v';v.textContent=(+b.s).toLocaleString();
+  const m=(b.m||'').trim();if(m){const c=document.createElement('span');c.className='mk '+(m==='AP'?'ap':'fc');c.textContent=m==='AP'?'ALL PERFECT':'FULL COMBO';const w=document.createElement('div');w.appendChild(c);v.appendChild(w)}
+  el.append(l,v);
+  if(mr){const r=document.createElement('div');r.className='r';r.textContent='🌏 '+mr.r+'位';el.appendChild(r)}
+  else if(!online){const L=rkAll()[k]||[],i=L.findIndex(e=>e.s<=b.s);if(i>=0&&L[i].s===b.s){const r=document.createElement('div');r.className='r';r.textContent='📱 '+(i+1)+'位';el.appendChild(r)}}
 }
 function rkDiffs(so){return [...STD.filter(d=>so.diffs[d]),...(so.diffs.KIDS?['KIDS']:[])]}
 function rkPlayable(){return SONGS.filter(so=>!so.lock&&so.audio)}
@@ -1328,23 +1447,18 @@ function renderRank(){
   const so=songById(RK.song),ds=rkDiffs(so);if(!ds.includes(RK.diff))RK.diff=ds[0];
   $('rkTitle').textContent=so.title;$('rkPsalm').textContent=so.psalm;
   $('rkTabs').innerHTML='';
-  for(const d of ds){const b=document.createElement('button');b.textContent=d==='KIDS'?'キッズ':d;b.className=d===RK.diff?'on':'';if(d==='KIDS')b.classList.add('maru');
+  for(const d of ds){const b=document.createElement('button');b.textContent=d==='KIDS'?'キッズ':d;b.className='d-'+d+(d===RK.diff?' on':'');if(d==='KIDS')b.classList.add('maru');
     b.addEventListener('click',()=>{RK.diff=d;renderRank()});$('rkTabs').appendChild(b)}
   $('rkScope').style.display=ONL.ok?'':'none';
   document.querySelectorAll('#rkScope button').forEach(b=>b.classList.toggle('on',b.dataset.s===RK.scope));
   if(so.custom){$('rkScope').style.display='none'}
   if(ONL.ok&&RK.scope==='online'&&!so.custom){renderOnline(so);return}
   $('rkNote').innerHTML='この端末で遊んだ人のランキングです（各曲・難易度ごとに上位10件）。<br>家族や友だちと同じ端末で、名前を変えて遊んでみよう！';
+  rkMeCard(so,false);
   const L=rkAll()[so.id+':'+RK.diff]||[],box=$('rkList');box.innerHTML='';
   if(!L.length){box.innerHTML='<div class="rkEmpty">まだ記録がありません。<br>最初のランクインをねらおう！</div>';return}
-  L.forEach((e,i)=>{
-    const r=document.createElement('div');r.className='rkRow'+(i<3?' r'+(i+1):'')+(e.id===RK.hl?' me':'');
-    const no=document.createElement('div');no.className='no';no.textContent=i<3?['👑','2','3'][i]:String(i+1);if(i===0)no.style.fontSize='18px';
-    const nm=document.createElement('div');nm.className='nm';nm.textContent=e.n||'ななしの羊飼い';
-    const dt=document.createElement('small');const d=new Date(e.t);dt.textContent=(d.getMonth()+1)+'/'+d.getDate()+'  COMBO '+(e.c||0);nm.appendChild(dt);
-    const sc=document.createElement('div');sc.className='sc';sc.textContent=(+e.s).toLocaleString();
-    const mk=document.createElement('small');mk.textContent=e.m==='AP'?'ALL PERFECT':e.m==='FC'?'FULL COMBO':(e.r||'');sc.appendChild(mk);
-    r.append(no,nm,sc);box.appendChild(r);
+  L.forEach((e,i)=>{const d=new Date(e.t);
+    box.appendChild(rkRow(i,e.n,(d.getMonth()+1)+'/'+d.getDate()+'  COMBO '+(e.c||0),e.s,e.m||e.r||'',e.id===RK.hl));
   });
 }
 function openRank(from,songId,diff,hl){
@@ -1489,14 +1603,20 @@ function finish(){
     [['lP','すごい！'],['lG','いいね！'],['lD','OK！'],['lM','おしい！'],['lC','さいこうコンボ'],['lS','あつめた ひつじ'],['lGo','ふっとばした ゴリアテ']].forEach(([id,x])=>$(id).textContent=x);
   }else{
     $('rTitle').textContent=win?(SONG.boss==='stars'?SONG.g.std:'VICTORY'):(SONG.boss==='stars'?'CLEAR':'RETREAT');
-    $('rSub').textContent=(SONG.boss==='stars'?(win?SONG.g.win+' ― ':SONG.g.lose+' ― '):(win?'ゴリアテは倒れた ― ':'ゴリアテはまだ立っている ― '))+D;
+    $('rSub').textContent=(SONG.boss==='stars'?(win?SONG.g.win:SONG.g.lose):(win?'ゴリアテは倒れた':'ゴリアテはまだ立っている'));
     $('rStars').style.display='none';$('rRank').textContent=rank;$('rRank').style.fontSize='';
     [['lP','PERFECT'],['lG','GREAT'],['lD','GOOD'],['lM','MISS'],['lC','MAX COMBO'],['lS','SHEEP'],['lGo','GOLIATH']].forEach(([id,x])=>$(id).textContent=x);
   }
-  $('rScore').textContent=s.toLocaleString();
+  {const el=$('rScore'),t0=performance.now()+500,dur=1100;el.textContent='0';clearInterval(finish.cu);finish.cu=setInterval(()=>{const a=Math.min(1,Math.max(0,(performance.now()-t0)/dur)),e=1-Math.pow(1-a,3);el.textContent=Math.round(s*e).toLocaleString();if(a>=1)clearInterval(finish.cu)},33)}
+  $('rSongT').textContent=SONG.title;$('rDiff').textContent=K?'キッズ':D;$('rDiff').className='dchip '+D;
+  {const tot=Math.max(1,st.P+st.G+st.D+st.M),bars=$('jBar').children;[st.P,st.G,st.D,st.M].forEach((v,i)=>{bars[i].style.width='0'});setTimeout(()=>[st.P,st.G,st.D,st.M].forEach((v,i)=>{bars[i].style.width=(v/tot*100)+'%'}),700)}
   $('rBadge').textContent=ap?'ALL PERFECT':fc?'FULL COMBO':'';
-  $('rP').textContent=st.P+(st.JUST?'  (JUST '+st.JUST+')':'');$('rG').textContent=st.G;$('rD').textContent=st.D;$('rM').textContent=st.M;$('rC').textContent=st.maxCombo;$('rS').textContent=st.sheep+' / '+st.sheepN;$('rGo').textContent=st.gol+' / '+st.golN;
+  $('rP').textContent=st.P;$('rJ').textContent=st.JUST?'JUST '+st.JUST:'';$('rG').textContent=st.G;$('rD').textContent=st.D;$('rM').textContent=st.M;$('rC').textContent=st.maxCombo;$('rS').textContent=st.sheep+' / '+st.sheepN;$('rGo').textContent=st.gol+' / '+st.golN;
   const best=store.get('best2',{}),bk=SONG.id+':'+D,b=best[bk];
+  {const rb=$('rBest');rb.className='';
+    if(!b){rb.textContent=K?'はじめての きろく！':'はじめての記録！'}
+    else if(s>b.s){rb.className='new';rb.textContent=(K?'じこベスト こうしん！ +':'NEW BEST! +')+(s-b.s).toLocaleString()}
+    else{rb.textContent=(K?'じこベスト ':'自己ベスト ')+b.s.toLocaleString()}}
   if(!b||s>b.s){best[bk]={s,m:ap?' AP':fc?' FC':''};store.set('best2',best)}
   if(win){const w=actx.currentTime;[0,2,4,5,7,9].forEach((d,i)=>voice(d,.4,w+0.3+i*0.09,{sparkle:i===5}))}
   davSay(win,ap,K);
