@@ -670,7 +670,7 @@ $('title').addEventListener('pointerup',async()=>{
   try{actx=new (window.AudioContext||window.webkitAudioContext)();const s=actx.createBufferSource();s.buffer=actx.createBuffer(1,1,22050);s.connect(actx.destination);s.start();buildGraph();pvUnlockAll();if(actx.state==='suspended')await actx.resume()}catch(e){}
   show('loading');
   SONGS.forEach(so=>{if(so.bgf&&!BGI[so.id]){const im=new Image();im.src=so.bgf;BGI[so.id]=im}});
-  try{await chartP;if(curSong&&songById(curSong).audio)await loadAudio(songById(curSong).audio).catch(()=>{});if(!store.get('calibDone',0))openCalib();else openSelect();if(songById(curSong).audio)loadAudio(songById(curSong).audio).catch(()=>{})}
+  try{await chartP;if(curSong&&songById(curSong).audio)await loadAudio(songById(curSong).audio).catch(()=>{});if(!store.get('calibDone',0))openCalib();else openSelect();sbFlush();if(songById(curSong).audio)loadAudio(songById(curSong).audio).catch(()=>{})}
   catch(e){$('loadTxt').textContent='LOAD ERROR';$('err').textContent='音声の読み込みに失敗しました（'+(e&&e.message||e)+'）。別のブラウザでお試しください。';booting=false}
 });
 
@@ -1393,16 +1393,31 @@ async function sbFetch(path,opt={},auth){
   try{const r=await fetch(SB.url+path,{cache:'no-store',...opt,headers:{...h,...(opt.headers||{})},signal:ctl.signal});const j=await r.json().catch(()=>null);if(!r.ok)throw Object.assign(new Error('sb '+r.status),{j});return j}
   finally{clearTimeout(tm)}
 }
-function sbKeep(j){if(!j||!j.access_token)throw new Error('no session');ONL.sess={at:j.access_token,rt:j.refresh_token,exp:Date.now()/1000+(j.expires_in||3600),uid:j.user&&j.user.id};store.set('sbs',ONL.sess);return ONL.sess}
-async function sbAuth(){
-  const s0=ONL.sess;if(s0&&s0.exp>Date.now()/1000+60)return s0;
-  if(s0&&s0.rt){try{return sbKeep(await sbFetch('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:s0.rt})}))}catch(e){}}
-  return sbKeep(await sbFetch('/auth/v1/signup',{method:'POST',body:JSON.stringify({data:{}})}));
+// identity: a random player id + secret kept on this device (no sign-in needed)
+const ME=(()=>{let m=store.get('sbMe',null);if(!m||!m.pid||!m.sec){const rnd=n=>{const a=new Uint8Array(n);crypto.getRandomValues(a);return [...a].map(x=>x.toString(16).padStart(2,'0')).join('')};const h=rnd(16);
+  m={pid:h.slice(0,8)+'-'+h.slice(8,12)+'-4'+h.slice(13,16)+'-'+((parseInt(h[16],16)&3)|8).toString(16)+h.slice(17,20)+'-'+h.slice(20,32),sec:rnd(24)};store.set('sbMe',m)}return m})();
+async function sbRpc(fn,args){return sbFetch('/rest/v1/rpc/'+fn,{method:'POST',body:JSON.stringify({p_pid:ME.pid,p_secret:ME.sec,...args})})}
+function sbWhy(e){const j=e&&e.j||{},c=String(j.code||''),m=String(j.message||'');
+  if(!e||e.name==='AbortError'||e instanceof TypeError)return '通信できませんでした';
+  if(c==='PGRST202'||c==='PGRST205'||c==='42883'||c==='42P01'||/does not exist|Could not find/i.test(m))return 'サーバーの準備がまだです（SQL未実行）';
+  if(/^sb 40[13]/.test(e.message))return 'キーが正しくありません（'+e.message.slice(3)+'）';
+  return 'エラー '+(e.message||'').replace('sb ','')+(c?' / '+c:'');}
+// scores waiting to be sent (kept until the server accepts them)
+const SBQ={q:store.get('sbQ',{}),busy:false};
+function sbQueue(song,diff,e){const k=song+':'+diff,o=SBQ.q[k];if(!o||e.score>o.score){SBQ.q[k]={song,diff,...e};store.set('sbQ',SBQ.q)}}
+async function sbFlush(){
+  if(!ONL.ok||SBQ.busy)return {sent:0};SBQ.busy=true;let sent=0,last=null,err=null;
+  try{for(const k of Object.keys(SBQ.q)){const e=SBQ.q[k];
+    try{const r=await sbRpc('beet_submit',{p_song:e.song,p_diff:e.diff,p_name:pName()||'ななしの羊飼い',p_score:e.score,p_mark:e.mark||'',p_combo:e.combo||0});
+      delete SBQ.q[k];store.set('sbQ',SBQ.q);sent++;delete ONL.cache[k];
+      if(typeof r==='number'){const prev=ONL.myRank[k];ONL.myRank[k]={r,s:Math.max(e.score,prev?prev.s:0),m:prev&&prev.s>e.score?prev.m:e.mark};store.set('sbRank',ONL.myRank);last={k,r}}
+    }catch(x){err=x;if(!x.j||x.name==='AbortError')break}}}
+  finally{SBQ.busy=false}
+  return {sent,last,err};
 }
-async function sbRpc(fn,args){const ss=await sbAuth();return sbFetch('/rest/v1/rpc/'+fn,{method:'POST',body:JSON.stringify(args)},ss.at)}
 async function sbBoard(song,diff,force){
   const k=song+':'+diff,c=ONL.cache[k];if(c&&!force&&Date.now()-c.t<20000)return c.rows;
-  const q='/rest/v1/scores?select=player_id,name,score,mark,combo,updated_at&song=eq.'+encodeURIComponent(song)+'&diff=eq.'+encodeURIComponent(diff)+'&order=score.desc,updated_at.asc&limit=50';
+  const q='/rest/v1/beet_scores?select=player_id,name,score,mark,combo,updated_at&song=eq.'+encodeURIComponent(song)+'&diff=eq.'+encodeURIComponent(diff)+'&order=score.desc,updated_at.asc&limit=50';
   const rows=await sbFetch(q,{method:'GET'});ONL.cache[k]={t:Date.now(),rows};return rows;
 }
 document.querySelectorAll('#rkScope button').forEach(b=>b.addEventListener('click',()=>{RK.scope=b.dataset.s;renderRank()}));
@@ -1419,16 +1434,16 @@ function renderOnline(so){
   const box=$('rkList'),k=so.id+':'+RK.diff,tok=k+Math.random();RK.tok=tok;
   box.innerHTML='<div class="rkEmpty">全国ランキングを読みこみ中…</div>';rkMeCard(so,true);
   $('rkNote').innerHTML='全国のプレイヤーの自己ベスト（各曲・難易度ごとに上位50人）です。<br>名前を変えると、全国ランキングの名前も変わります。';
-  sbBoard(so.id,RK.diff).then(rows=>{
+  sbFlush().then(()=>sbBoard(so.id,RK.diff)).then(rows=>{
     if(RK.tok!==tok)return;box.innerHTML='';
-    if(!rows||!rows.length){box.innerHTML='<div class="rkEmpty">まだ記録がありません。<br>全国1位をねらおう！</div>';return}
-    const me=ONL.sess&&ONL.sess.uid;let seen=false;
+    if(!rows||!rows.length){const n=Object.keys(SBQ.q).length;box.innerHTML='<div class="rkEmpty">まだ記録がありません。<br>全国1位をねらおう！'+(n?'<br><small>（送信待ちの記録が '+n+' 件あります）</small>':'')+'</div>';return}
+    const me=ME.pid;let seen=false;
     rows.forEach((e,i)=>{const d=new Date(e.updated_at),mine=me&&e.player_id===me;if(mine)seen=true;
       box.appendChild(rkRow(i,e.name,(d.getMonth()+1)+'/'+d.getDate()+'  COMBO '+(e.combo||0),e.score,e.mark,mine))});
     const mr=ONL.myRank[k];
     if(!seen&&mr){const g=document.createElement('div');g.className='rkRow gap';g.textContent='…';box.appendChild(g);
       box.appendChild(rkRow(mr.r-1,pName()||'あなた','あなたの記録',mr.s,mr.m,true))}
-  }).catch(()=>{if(RK.tok!==tok)return;box.innerHTML='<div class="rkEmpty">📡 全国ランキングに つながりませんでした。<br>通信できる場所で もう一度ひらいてね。<br><button class="btn" id="rkToLocal">📱 この端末のランキングを見る</button></div>';$('rkToLocal').addEventListener('click',()=>{RK.scope='local';renderRank()})});
+  }).catch(e=>{if(RK.tok!==tok)return;const why=sbWhy(e);box.innerHTML='<div class="rkEmpty">📡 全国ランキングに つながりませんでした。<br><small>'+why.replace(/[<>&]/g,'')+'</small><br>'+(why.startsWith('通信')?'通信できる場所で もう一度ひらいてね。<br>':'')+'<button class="btn" id="rkToLocal">📱 この端末のランキングを見る</button></div>';$('rkToLocal').addEventListener('click',()=>{RK.scope='local';renderRank()})});
 }
 function rkMeCard(so,online){
   const el=$('rkMe'),k=so.id+':'+RK.diff,b=store.get('best2',{})[k],mr=online?ONL.myRank[k]:null;
@@ -1472,7 +1487,7 @@ $('rkPrev').addEventListener('click',()=>rkStep(-1));$('rkNext').addEventListene
 $('rkName').addEventListener('change',()=>{
   const v=$('rkName').value.replace(/[\u0000-\u001f<>]/g,'').trim().slice(0,10);$('rkName').value=v;store.set('pname',v);
   if(RK.hl){const all=rkAll();for(const k in all)for(const e of all[k])if(e.id===RK.hl)e.n=v;store.set('rank',all)}
-  if(ONL.ok&&ONL.sess){sbRpc('set_name',{p_name:v||'ななしの羊飼い'}).then(()=>{ONL.cache={};renderRank()}).catch(()=>{})}else renderRank();
+  if(ONL.ok&&Object.keys(ONL.myRank).length){sbRpc('beet_set_name',{p_name:v||'ななしの羊飼い'}).then(()=>{ONL.cache={};renderRank()}).catch(()=>renderRank())}else renderRank();
 });
 $('rkName').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')e.target.blur()});
 $('rkClose').addEventListener('click',()=>{if(RK.from==='result'){mode='result';show('result')}else openSelect()});
@@ -1640,12 +1655,17 @@ function finish(){
     lastRank=rkSubmit(SONG.id,D,{n:pName(),s,m:ap?'AP':fc?'FC':'',r:K?'':'RANK '+rank,c:st.maxCombo,t:Date.now()});
     if(lastRank.pos){h='<span class="rkIn" id="rkInMsg">🏆 '+(K?'ランキング '+lastRank.pos+'い に はいったよ！':'ランキング '+lastRank.pos+'位にランクイン！')+(pName()?'':'<br><small style="font-weight:400">タップして なまえを いれよう</small>')+'</span>'+h}
     if(ONL.ok&&s>0&&!SONG.custom){const sk=SONG.id+':'+D,mk=ap?'AP':fc?'FC':'';
-      sbRpc('submit_score',{p_song:SONG.id,p_diff:D,p_name:pName()||'ななしの羊飼い',p_score:s,p_mark:mk,p_combo:st.maxCombo}).then(r=>{
-        if(typeof r!=='number')return;const prev=ONL.myRank[sk];
-        ONL.myRank[sk]={r,s:Math.max(s,prev?prev.s:0),m:prev&&prev.s>s?prev.m:mk};store.set('sbRank',ONL.myRank);delete ONL.cache[sk];
-        const el=document.createElement('span');el.className='rkIn';el.textContent='🌏 '+(K?'ぜんこく '+r+'い！':'全国ランキング '+r+'位！');
-        el.addEventListener('click',()=>{RK.scope='online';$('rRankBtn').click()});const rp=$('rProg');rp.insertBefore(el,rp.firstChild);
-      }).catch(()=>{});
+      const pb=ONL.myRank[sk];
+      if(!pb||s>pb.s||SBQ.q[sk])sbQueue(SONG.id,D,{score:s,mark:mk,combo:st.maxCombo});
+      sbFlush().then(res=>{
+        const rp=$('rProg'),el=document.createElement('span');el.className='rkIn';
+        const mr=ONL.myRank[sk];
+        if(SBQ.q[sk]){el.textContent='🌏 '+(K?'ぜんこく ランキングに おくれなかったよ':'全国ランキングに送れませんでした')+'（'+sbWhy(res.err)+'）';el.style.borderColor='#ff9aa8';el.style.color='#ffc2cc';el.style.background='rgba(255,120,140,.12)';
+          el.appendChild(document.createElement('br'));const sm=document.createElement('small');sm.style.fontWeight='400';sm.textContent=K?'つぎに ひらいたときに もういちど おくるよ':'記録は保存しておき、次にランキングを開いたときに自動で送ります';el.appendChild(sm)}
+        else if(mr){el.textContent='🌏 '+(K?'ぜんこく '+mr.r+'い！':'全国ランキング '+mr.r+'位！')+(pb&&s<=pb.s?(K?'（じこベストは そのまま）':'（自己ベストの記録）'):'')}
+        else return;
+        el.addEventListener('click',()=>{RK.scope='online';$('rRankBtn').click()});rp.insertBefore(el,rp.firstChild);
+      });
     }
     $('rProg').innerHTML=h;{const m=$('rkInMsg');if(m)m.addEventListener('click',()=>{RK.scope='local';$('rRankBtn').click()})}lastResult={s,rank,win,ap,fc,K,title:TITLES[t1][0],sheep:st.sheep,gol:st.gol,maxCombo:st.maxCombo,diff:D,P:st.P,G:st.G,Dd:st.D,M:st.M,J:st.JUST||0};
   }
