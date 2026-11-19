@@ -188,6 +188,7 @@ body.kids #startBtn{color:#06202a;background:linear-gradient(180deg,#f0fdff,#8fe
 @keyframes toast{0%{opacity:0;transform:translate(-50%,-8px)}10%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0}}
 #rCoop{width:min(94vw,440px);border:1px solid rgba(143,227,255,.6);border-radius:14px;background:rgba(10,20,30,.7);padding:10px 12px;margin:6px 0 8px;font-family:'Zen Maru Gothic',sans-serif}
 #rCoop .ch{font-weight:900;font-size:14px;color:#d8f4ff;text-align:center}
+#rCoop .cu{text-align:center;font-size:12px;font-weight:900;color:#ffe08a;margin:-2px 0 6px}
 #rCoop .ct{font-family:Orbitron,sans-serif;font-weight:900;font-size:18px;text-align:center;margin:4px 0 6px}
 #rCoop .cr{display:grid;grid-template-columns:1fr auto auto;gap:2px 8px;align-items:center;border-left:4px solid var(--c);padding:4px 0 4px 8px;margin-top:4px}
 #rCoop .cr .n{font-weight:900;font-size:13px;color:var(--c);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
@@ -463,7 +464,7 @@ body.kids #davLink{border-color:var(--kid);box-shadow:0 0 22px rgba(143,227,255,
 
 <div id="coop" class="screen">
   <h2>🤝 協力ライブ</h2>
-  <div class="lead">なかまと同じ曲を いっしょに叩いて、みんなの力で ゴリアテを倒そう！<br>だれかがミスしても失敗にはなりません。むずかしさは一人ずつ選べます（最大4人）。</div>
+  <div class="lead">なかまと同じ曲を いっしょに叩いて、みんなの力で ゴリアテを倒そう！<br>だれかがミスしても失敗にはなりません。むずかしさは一人ずつ選べます（最大4人）。<br>⚔ ゴリアテの攻撃を<b>全員でガード</b>すると、みんなの石が合体して大ダメージ！<br>📣 <b>キッズで参加</b>した人は応援団。コンボが続くほど、みんなの石がパワーアップ！</div>
   <div class="cpCard"><h3>なまえ</h3><div class="cpRow"><input id="cpName" maxlength="10" autocomplete="off" placeholder="なまえ"></div></div>
   <div id="cpOut">
     <div class="cpCard"><h3>ルームをつくる</h3><button class="btn gold" id="cpMake" style="width:100%">ルームをつくる（ホストになる）</button></div>
@@ -1156,7 +1157,7 @@ function judge(n,k,lane,isTail,dt){
     if(st.combo>=10||fever.on)muffle('M');
     st.combo=0;if(fever.on)endFever();vivid();
   }else{
-    st.combo++;st.maxCombo=Math.max(st.maxCombo,st.combo);st.dmg+=WEIGHT[k];
+    st.combo++;st.maxCombo=Math.max(st.maxCombo,st.combo);st.dmg+=WEIGHT[k]*cheerMult();
     if(st.combo%(D==='KIDS'?10:25)===0)davSayPop();
     vivid();
     if(k==='D')muffle('D');
@@ -2087,8 +2088,8 @@ function battleThrow(x0,y0,opt){
 function battleHit(k,lane,just,isTail){
   if(!BT||!isBattle()||st.goliathDown||k==='M'||k==='D'||isTail)return;
   const now=performance.now();if(now-BT.lastThrow<70&&!just)return;BT.lastThrow=now;
-  const p=judgePos(lane),n=Math.round(WEIGHT[k]*(10+Math.min(st.combo,100)/5));
-  battleThrow(p.x,p.y,{txt:just?(D==='KIDS'?'ばっちり！':'CRITICAL'):String(n),crit:just,mine:1});
+  const cm=cheerMult(),p=judgePos(lane),n=Math.round(WEIGHT[k]*(10+Math.min(st.combo,100)/5)*cm);
+  battleThrow(p.x,p.y,{txt:just?(D==='KIDS'?'ばっちり！':'CRITICAL'):String(n),crit:just,mine:1,big:cm>=1.5?1:0,col:cm>1.01?'#ffd54a':null});
 }
 function battleMiss(){
   if(!BT||!isBattle()||st.goliathDown)return;
@@ -2103,19 +2104,52 @@ function battleTick(t,beatN){
   if(!BT.angry&&h<=0.28&&!st.goliathDown){BT.angry=true;bossBanner(K?'ゴリアテが おこった！':'ゴリアテが怒った！','#ff7a7a')}
   // Goliath attacks in the loud parts: 2 beats of warning, the blow, then 4 beats to "guard" (no misses)
   const sec=section(t),cl=sec==='CHORUS'||sec==='DROP'||sec==='FINAL';
-  if(BT.nextAtkBeat==null)BT.nextAtkBeat=Math.ceil(beatN/16)*16+8;
-  if(!BT.atk&&cl&&!st.goliathDown&&beatN>=BT.nextAtkBeat&&t<CH.duration-8){
-    BT.atk={phase:'warn',b0:beatN,missed:false};bossBanner(K?'ゴリアテの こうげき！ ミスしないで！':'ゴリアテの攻撃！ ミスするな！','#ff9a9a');
-    BT.nextAtkBeat=beatN+(BT.angry?12:16);
-  }else if(!BT.atk&&beatN>=BT.nextAtkBeat){BT.nextAtkBeat=beatN+4}
+  // attacks may start only on beats that are multiples of 4, so every phone picks the very same beats
+  const team=coopOn()&&RT.started,c4=Math.floor(beatN/4)*4;
+  if(BT.lastC==null)BT.lastC=-1e9;if(BT.lastAtk==null)BT.lastAtk=-1e9;
+  if(c4>=8&&c4>BT.lastC){BT.lastC=c4;const tc=beatTime(c4),sc=section(tc),clc=sc==='CHORUS'||sc==='DROP'||sc==='FINAL';
+    if(!BT.atk&&clc&&!st.goliathDown&&tc<CH.duration-8&&c4>=BT.lastAtk+(BT.angry&&!team?12:16)){
+      BT.lastAtk=c4;BT.atk={phase:'warn',b0:c4,id:c4,missed:false};
+      bossBanner(team?(K?'ゴリアテの こうげき！ みんなで ガード！':'ゴリアテの攻撃！ 全員でガードだ！'):(K?'ゴリアテの こうげき！ ミスしないで！':'ゴリアテの攻撃！ ミスするな！'),'#ff9a9a')}}
+  if(BT.uni)unisonCheck();
   const a=BT.atk;if(!a)return;
   if(a.phase==='warn'&&beatN>=a.b0+2){a.phase='guard';a.b1=beatN;shake=Math.max(shake,1);flash=Math.max(flash,0.25);BT.redT=performance.now();thud()}
   else if(a.phase==='guard'&&beatN>=a.b1+4){
+    if(team){const ok=!a.missed;(RT.guards[a.id]=RT.guards[a.id]||{})[ME.pid]=ok;rtCast('guard',{k:ME.pid,id:a.id,ok});BT.uni={id:a.id,t:performance.now()}}
     if(a.missed){bossBanner(K?'うけちゃった… でも だいじょうぶ！':'くらった！ ゴリアテが回復…','#ff9a9a');if(!K){st.dmg=Math.max(0,st.dmg-st.units*st.hpNeed*0.02);BT.healT=performance.now();updHUD()}}
-    else{bossBanner(K?'ガード せいこう！ はんげき！':'ガード成功！ 反撃だ！','#9fe3ff');const L=layout();
+    else{bossBanner(team?(K?'ガード せいこう！ みんなは…？':'ガード成功！ みんなは…？'):(K?'ガード せいこう！ はんげき！':'ガード成功！ 反撃だ！'),'#9fe3ff');const L=layout();
       st.dmg+=st.units*st.hpNeed*0.03;updHUD();for(let i=0;i<3;i++)setTimeout(()=>battleThrow(L.cx+(i-1)*L.lw*1.5,L.jy,{big:1,txt:i===1?(K?'はんげき！':'COUNTER'):null,dur:420,mine:1}),i*120)}
     BT.atk=null;
   }
+}
+// ---- 1) UNISON: when every player guards the same attack, all stones merge into one giant stone ----
+function playingKeys(){const now=performance.now();return coopList().filter(m=>m.k===ME.pid||(RT.peers[m.k]&&now-RT.peers[m.k].t<3000&&!RT.peers[m.k].done)).map(m=>m.k)}
+function unisonCheck(){
+  const u=BT.uni,res=RT.guards[u.id]||{},keys=playingKeys(),got=keys.filter(k=>k in res),age=performance.now()-u.t;
+  if(got.length<keys.length&&age<5000)return;
+  BT.uni=null;const K=D==='KIDS';if(got.length<2)return;
+  const all=got.every(k=>res[k]);
+  if(all){BT.uniOK=(BT.uniOK||0)+1;bossBanner(K?'みんなで ガード！ がったい こうげき！':'全員ガード！ 合体攻撃だ！','#ffe08a');
+    st.dmg+=st.units*st.hpNeed*0.06;updHUD();shake=Math.max(shake,1);
+    const L=layout();coopList().forEach((m,i)=>{const ch=document.querySelector('#coopBar [data-k="'+CSS.escape(m.k)+'"]');let x=L.cx+(i-1.5)*L.lw,y=L.jy;if(ch&&m.k!==ME.pid){const r=ch.getBoundingClientRect();x=r.left;y=r.top+r.height/2}
+      setTimeout(()=>battleThrow(x,y,{col:coopColor(m.k),dur:380}),i*80)});
+    setTimeout(()=>{battleThrow(L.cx,L.jy,{big:2,col:'rainbow',txt:'UNISON!!',crit:1,dur:560,mine:1});flash=Math.max(flash,0.5)},420)}
+  else{BT.uniNG=(BT.uniNG||0)+1;const who=got.filter(k=>!res[k]).map(k=>k===ME.pid?(K?'じぶん':'自分'):((RT.members[k]&&RT.members[k].name)||'?'));
+    bossBanner(K?'おしい！ つぎは みんなで そろえよう！':'合体ならず…（'+who.join('・')+'）次こそ全員で！','#ffc2cc')}
+}
+// ---- 3) CHEER: players on キッズ cheer for everyone else; their combo powers up the others' stones ----
+function cheerMult(){
+  if(!(coopOn()&&RT.started)||D==='KIDS')return 1;const now=performance.now();let c=0;
+  for(const[k,p]of Object.entries(RT.peers))if(p.d==='KIDS'&&now-p.t<3000&&!p.done)c+=Math.min(1,(p.cb||0)/30)*0.5;
+  return 1+Math.min(1,c);
+}
+function cheerKids(){const now=performance.now();return Object.entries(RT.peers).filter(([k,p])=>p.d==='KIDS'&&now-p.t<3000&&(p.cb||0)>=10).map(([k])=>(RT.members[k]&&RT.members[k].name)||'?')}
+function cheerTick(){
+  if(!(coopOn()&&RT.started)||mode!=='play'||!st)return;
+  const say=(txt,col)=>{if(isBattle())bossBanner(txt,col);else coopToast(txt)};
+  if(D==='KIDS'){const others=coopList().some(m=>m.k!==ME.pid&&RT.peers[m.k]&&RT.peers[m.k].d!=='KIDS');if(!others)return;
+    const lv=Math.min(3,Math.floor(st.combo/10));if(lv>(BT.cheerLv||0)){say('おうえん パワー レベル'+lv+'！ みんなの 石が つよくなったよ','#ffe08a')}BT.cheerLv=lv}
+  else{const m=cheerMult(),tier=Math.floor((m-1)*4+1e-6);if(tier>(BT.cheerTier||0)){const n=cheerKids();if(n.length)say((n.join('・'))+' の応援で 石がパワーアップ！ ×'+m.toFixed(2).replace(/0$/,''),'#ffe08a')}BT.cheerTier=tier}
 }
 function drawBoss(t,L,beatN){
   if(!BT||!isBattle()||!st)return;
@@ -2160,13 +2194,14 @@ function drawBossFx(L){
   BT.dust=BT.dust.filter(d=>{const k=(now-d.t)/1500;if(k>1)return false;g.fillStyle='rgba(220,200,170,'+(0.35*(1-k))+')';g.beginPath();g.arc(d.x+d.vx*k,d.y-k*30,d.r*(1+k),0,7);g.fill();return true});
   // stones in flight
   BT.pebbles=BT.pebbles.filter(p=>{const k=(now-p.t)/p.dur;
-    if(k<1){const e=1-Math.pow(1-k,2),x=p.x0+(p.x1-p.x0)*e,y=p.y0+(p.y1-p.y0)*e-Math.sin(k*Math.PI)*H*0.06,r=(p.big?9:5)*(1-0.55*e)*(Math.min(W,H)/420);
+    if(k<1){const e=1-Math.pow(1-k,2),x=p.x0+(p.x1-p.x0)*e,y=p.y0+(p.y1-p.y0)*e-Math.sin(k*Math.PI)*H*0.06,r=(p.big===2?26:p.big?9:5)*(1-0.55*e)*(Math.min(W,H)/420);
+      if(p.col==='rainbow'){const gr=g.createRadialGradient(x,y,0,x,y,r*2.2);gr.addColorStop(0,'rgba(255,255,255,.9)');gr.addColorStop(.4,'hsla('+((now/4)%360)+',100%,70%,.6)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.beginPath();g.arc(x,y,r*2.2,0,7);g.fill()}
       if(okImg(BOSS.fx.stone)){g.save();g.translate(x,y);g.rotate(k*12);g.drawImage(BOSS.fx.stone,-r*1.4,-r*1.4,r*2.8,r*2.8);g.restore()}
-      else{g.fillStyle=p.col||'#e8e0d0';g.strokeStyle='rgba(60,40,20,.9)';g.lineWidth=1.5;g.beginPath();g.arc(x,y,r,0,7);g.fill();g.stroke()}
-      if(p.col){g.strokeStyle=p.col;g.globalAlpha=0.5;g.lineWidth=r;g.beginPath();g.moveTo(x,y);g.lineTo(x-(p.x1-p.x0)*0.05,y-(p.y1-p.y0)*0.05+r);g.stroke();g.globalAlpha=1}
+      else{g.fillStyle=p.col&&p.col!=='rainbow'?p.col:'#e8e0d0';g.strokeStyle='rgba(60,40,20,.9)';g.lineWidth=1.5;g.beginPath();g.arc(x,y,r,0,7);g.fill();g.stroke()}
+      if(p.col&&p.col!=='rainbow'){g.strokeStyle=p.col;g.globalAlpha=0.5;g.lineWidth=r;g.beginPath();g.moveTo(x,y);g.lineTo(x-(p.x1-p.x0)*0.05,y-(p.y1-p.y0)*0.05+r);g.stroke();g.globalAlpha=1}
       return true}
-    if(!p.hit){p.hit=true;BT.hitT=now;if(p.big)shake=Math.max(shake,0.5);
-      for(let i=0;i<(p.big?16:7)&&parts.length<420;i++){const a=Math.random()*Math.PI*2,v=80+Math.random()*120;parts.push({x:p.x1,y:p.y1,vx:Math.cos(a)*v,vy:Math.sin(a)*v,t:now,c:p.col||'#fff3c9',life:450})}
+    if(!p.hit){p.hit=true;BT.hitT=now;if(p.big)shake=Math.max(shake,p.big===2?1.2:0.5);
+      for(let i=0;i<(p.big===2?60:p.big?16:7)&&parts.length<480;i++){const a=Math.random()*Math.PI*2,v=(p.big===2?160:80)+Math.random()*(p.big===2?260:120);parts.push({x:p.x1,y:p.y1,vx:Math.cos(a)*v,vy:Math.sin(a)*v,t:now,c:p.col==='rainbow'?'hsl('+Math.floor(Math.random()*360)+',100%,72%)':(p.col||'#fff3c9'),life:p.big===2?900:450})}
       if(p.txt||p.mine)BT.pops.push({x:p.x1+(Math.random()-.5)*20,y:p.y1,txt:p.txt,crit:p.crit,col:p.col,t:now})}
     return false});
   // damage numbers
@@ -2180,7 +2215,7 @@ function drawBossFx(L){
 
 // ================= CO-OP LIVE (Supabase Realtime, plain WebSocket) =================
 const COOP_COL=['#ffdf8a','#8fe3ff','#ff9ad5','#b6f08a'];
-const RT={ws:null,topic:null,ref:0,hb:null,room:null,members:{},peers:{},joined:false,me:null,sendT:0,lastF:{},res:{},song:null,started:false};
+const RT={guards:{},ws:null,topic:null,ref:0,hb:null,room:null,members:{},peers:{},joined:false,me:null,sendT:0,lastF:{},res:{},song:null,started:false};
 const coopOn=()=>!!(RT.room&&RT.joined);
 function rtUrl(){const base=store.get('rtUrl','')||SB.url.replace(/^http/,'ws')+'/realtime/v1/websocket';return base+'?apikey='+encodeURIComponent(SB.key)+'&vsn=1.0.0'}
 function rtSend(event,payload,topic){if(RT.ws&&RT.ws.readyState===1)RT.ws.send(JSON.stringify({topic:topic||RT.topic,event,payload,ref:String(++RT.ref)}))}
@@ -2227,11 +2262,12 @@ function coopMsg(ev,p){
       let x0=W-20,y0=H*0.3;if(ch){const r=ch.getBoundingClientRect();x0=r.left;y0=r.top+r.height/2}
       for(let i=0;i<n;i++)setTimeout(()=>battleThrow(x0,y0,{col:coopColor(p.k),dur:520}),i*90)}
     coopBar()}
+  else if(ev==='guard'){(RT.guards[p.id]=RT.guards[p.id]||{})[p.k]=!!p.ok}
   else if(ev==='hello'){if(coopIsHost()&&curSong)rtCast('song',{song:curSong})}
   else if(ev==='done'){RT.res[p.k]=p;RT.peers[p.k]={...(RT.peers[p.k]||{}),...p,done:1};coopResult()}
 }
 async function coopBegin(songId){
-  const so=songById(songId);if(!so)return;curSong=songId;RT.res={};RT.peers={};RT.started=true;
+  const so=songById(songId);if(!so)return;curSong=songId;RT.res={};RT.peers={};RT.guards={};RT.started=true;
   clearTimeout(prevTimer);stopPreview();
   if(!BUFS[so.audio]){show('loading');$('loadTxt').textContent='LOADING…';try{await loadAudio(so.audio)}catch(e){$('loadTxt').textContent='LOAD ERROR';return}}
   show('coopCount');const el=$('ccNum');let n=3;el.textContent=n;$('ccSong').textContent=so.title;
@@ -2240,7 +2276,7 @@ async function coopBegin(songId){
 }
 // my progress toward the goal (0..1) — the team gauge is the average, and the team wins at 85%
 function myF(){return st?Math.min(1,st.dmg/(st.units*st.hpNeed)):0}
-function teamF(){const L=coopList();if(!L.length)return myF();let s=0;for(const m of L){s+=m.k===ME.pid?myF():Math.min(1,(RT.peers[m.k]&&RT.peers[m.k].f)||0)}return Math.min(1,s/L.length/0.85)}
+function teamF(){const L=coopList();if(!L.length)return myF();let s=0;for(const m of L){s+=m.k===ME.pid?myF():Math.min(1,(RT.peers[m.k]&&RT.peers[m.k].f)||0)}return Math.min(1,s/L.length/0.95)}
 function coopTick(){
   if(!coopOn()||mode!=='play'||!st)return;const now=performance.now();
   if(now-RT.sendT>450){RT.sendT=now;rtCast('p',{k:ME.pid,f:+myF().toFixed(4),sc:Math.round(1e6*st.sum/st.units),cb:st.combo,n:pName()||'ななしの羊飼い',d:D});coopBar()}
@@ -2252,7 +2288,8 @@ function coopBar(){
   for(const m of L){const me=m.k===ME.pid,pp=me?{f:myF(),cb:st?st.combo:0}:(RT.peers[m.k]||{f:0,cb:0});
     const c=document.createElement('div');c.className='cc'+(me?' me':'');c.dataset.k=m.k;c.style.setProperty('--c',coopColor(m.k));
     const nm=document.createElement('b');nm.textContent=(me?(kids()?'じぶん':'YOU'):m.name||'?');
-    const sm=document.createElement('small');sm.textContent=(pp.done?'✔ ':'')+'×'+(pp.cb||0)+' ・ '+Math.round(100*(pp.f||0)/tf)+'%';
+    const kid=me?D==='KIDS':pp.d==='KIDS',pw=me&&!kid?cheerMult():1;
+    const sm=document.createElement('small');sm.textContent=(pp.done?'✔ ':'')+(kid?'📣 ':'')+'×'+(pp.cb||0)+' ・ '+Math.round(100*(pp.f||0)/tf)+'%'+(pw>1.01?' ・ 💪'+pw.toFixed(1):'');
     c.append(nm,sm);bar.appendChild(c)}
 }
 function coopFinish(r){
@@ -2265,12 +2302,13 @@ function coopResult(){
   const h=document.createElement('div');h.className='ch';h.textContent=isBattle()?(win?(K?'🤝 みんなで ゴリアテを たおした！':'🤝 みんなでゴリアテを倒した！'):(K?'🤝 あと すこし！ もういちど みんなで！':'🤝 あと少し！ もう一度みんなで挑もう')):(K?'🤝 みんなで やりきった！':'🤝 TEAM LIVE CLEAR');box.appendChild(h);
   const tot=L.reduce((s,m)=>s+((RT.res[m.k]&&RT.res[m.k].sc)||0),0),sumF=Math.max(1e-9,L.reduce((s,m)=>s+((RT.res[m.k]||RT.peers[m.k]||{}).f||0),0));
   const tl=document.createElement('div');tl.className='ct';tl.textContent=(K?'チームの とくてん ':'TEAM SCORE ')+tot.toLocaleString();box.appendChild(tl);
+  if(BT&&(BT.uniOK||BT.uniNG)){const u=document.createElement('div');u.className='cu';u.textContent=(K?'がったい こうげき ':'合体攻撃 ')+(BT.uniOK||0)+' / '+((BT.uniOK||0)+(BT.uniNG||0))+(K?' かい せいこう':' 回成功');box.appendChild(u)}
   for(const m of L){const r=RT.res[m.k],row=document.createElement('div');row.className='cr';row.style.setProperty('--c',coopColor(m.k));
     const nm=document.createElement('span');nm.className='n';nm.textContent=(m.name||'?')+(m.k===ME.pid?(K?'（じぶん）':'（あなた）'):'');
     const dd=document.createElement('span');dd.className='dchip '+((r&&r.d)||m.diff||'');dd.textContent=((r&&r.d)||m.diff)==='KIDS'?'キッズ':((r&&r.d)||m.diff||'');
     const sc=document.createElement('span');sc.className='s';sc.textContent=r?r.sc.toLocaleString():(K?'プレイちゅう…':'プレイ中…');
     const bar=document.createElement('i');bar.style.width=(r?Math.round(100*(r.f||0)/sumF):0)+'%';
-    const pc=document.createElement('small');pc.textContent=r?((K?'こうげき ':'ダメージ ')+Math.round(100*(r.f||0)/sumF)+'%'+(r.ap?' ・ ALL PERFECT':r.fc?' ・ FULL COMBO':'')):'';
+    const pc=document.createElement('small');pc.textContent=r?((r.d==='KIDS'?'📣 応援団 ・ ':'')+(K?'こうげき ':'ダメージ ')+Math.round(100*(r.f||0)/sumF)+'%'+(r.ap?' ・ ALL PERFECT':r.fc?' ・ FULL COMBO':'')):'';
     row.append(nm,dd,sc,bar,pc);box.appendChild(row)}
 }
 // ---- lobby screen ----
@@ -2327,7 +2365,7 @@ function frame(){
   if(mode==='title')drawTitleBeat();
   if($('loading').classList.contains('on'))drawLoadingSlides();
   if(st&&(mode==='play'||mode==='pause')){const target=Math.round(1e6*st.sum/st.units);dispScore+=(target-dispScore)*0.25;if(Math.abs(target-dispScore)<1)dispScore=target;$('score').textContent=String(Math.round(dispScore)).padStart(7,'0')}
-  if(inGame&&mode!=='result'){battleTick(t,beatN);coopTick();drawBoss(t,L,beatN)}
+  if(inGame&&mode!=='result'){battleTick(t,beatN);coopTick();cheerTick();drawBoss(t,L,beatN)}
   if(inGame){if(mode!=='result')drawDavid(t,L,climax,beatN);drawField(t,L,climax,pulse,beatN);drawFX(L);if(mode!=='result')drawBossFx(L);if(mode!=='result')drawUI(t,L)}
 }
 $('coopBtn').addEventListener('click',coopOpen);$('coopChip').addEventListener('click',coopOpen);
@@ -2335,7 +2373,7 @@ $('cpClose').addEventListener('click',()=>{coopSaveName();openSelect()});$('cpGo
 $('cpMake').addEventListener('click',coopCreate);$('cpJoin').addEventListener('click',coopJoin);$('cpLeave').addEventListener('click',()=>{rtLeave();coopUI()});
 $('cpName').addEventListener('change',()=>{coopSaveName();rtTrack()});
 requestAnimationFrame(frame);
-window.__sb={get RT(){return RT},get BT(){return BT},hp:()=>hp(),get CHS(){return CHS},get SONGS(){return SONGS},judgePos:l=>judgePos(l),get A(){return A},get cal(){return cal},get actx(){return actx},probe:async(id)=>{SONG=songById(id);CH=CHS[id];startAt=actx.currentTime;const an=actx.createAnalyser();an.fftSize=2048;A.master.connect(an);const buf=new Float32Array(2048);let pk={};const meas=async(name,fn)=>{fn();let m=0,e=0,c=0;const t0=performance.now();while(performance.now()-t0<700){an.getFloatTimeDomainData(buf);for(const v of buf){m=Math.max(m,Math.abs(v));e+=v*v;c++}await new Promise(r=>setTimeout(r,20))}pk[name]=[+m.toFixed(3),+Math.sqrt(e/c).toFixed(4)]};await meas('tap',()=>voice(3,.55,0,{sparkle:1}));await meas('flick',()=>voice(3,.5,0,{kind:'flick',sparkle:1}));await meas('hold',()=>{const h=holdVoice(3,.55,0);setTimeout(()=>h&&h.stop(actx.currentTime),500)});A.master.disconnect(an);return JSON.stringify(pk)},get prev(){return !!(pvCur&&!pvCur.el.paused)},get pvPlaying(){return Object.keys(PV).filter(k=>!PV[k].el.paused&&!PV[k].el.muted)},get cur(){return curSong},get notes(){return notes},songTime:()=>songTime(),get st(){return st},get mode(){return mode},get fever(){return fever.on},cfg,setMode:m=>{cfg.mode=m;applyMode()}};
+window.__sb={cheer:()=>cheerMult(),get RT(){return RT},get BT(){return BT},hp:()=>hp(),get CHS(){return CHS},get SONGS(){return SONGS},judgePos:l=>judgePos(l),get A(){return A},get cal(){return cal},get actx(){return actx},probe:async(id)=>{SONG=songById(id);CH=CHS[id];startAt=actx.currentTime;const an=actx.createAnalyser();an.fftSize=2048;A.master.connect(an);const buf=new Float32Array(2048);let pk={};const meas=async(name,fn)=>{fn();let m=0,e=0,c=0;const t0=performance.now();while(performance.now()-t0<700){an.getFloatTimeDomainData(buf);for(const v of buf){m=Math.max(m,Math.abs(v));e+=v*v;c++}await new Promise(r=>setTimeout(r,20))}pk[name]=[+m.toFixed(3),+Math.sqrt(e/c).toFixed(4)]};await meas('tap',()=>voice(3,.55,0,{sparkle:1}));await meas('flick',()=>voice(3,.5,0,{kind:'flick',sparkle:1}));await meas('hold',()=>{const h=holdVoice(3,.55,0);setTimeout(()=>h&&h.stop(actx.currentTime),500)});A.master.disconnect(an);return JSON.stringify(pk)},get prev(){return !!(pvCur&&!pvCur.el.paused)},get pvPlaying(){return Object.keys(PV).filter(k=>!PV[k].el.paused&&!PV[k].el.muted)},get cur(){return curSong},get notes(){return notes},songTime:()=>songTime(),get st(){return st},get mode(){return mode},get fever(){return fever.on},cfg,setMode:m=>{cfg.mode=m;applyMode()}};
 })();
 </script>
 </body>
