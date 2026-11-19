@@ -253,35 +253,44 @@ poem.querySelectorAll('p').forEach((p,i)=>p.style.transitionDelay=(i*.4)+'s');
 
 const v=document.getElementById('pv'), snd=document.getElementById('snd');
 
-// ===== ビート演出：画面の端から、霧雨のように拍が降りてくる（中心は静かなまま） =====
+// ===== 星ビート：曲の拍ごとに、上から星が降ってくる（PVの中心はよける） =====
 (()=>{
-  const cv=document.getElementById('beat'),g=cv.getContext('2d'),hero=document.querySelector('.hero'),root=document.documentElement;
+  const cv=document.getElementById('beat'),g=cv.getContext('2d'),hero=document.querySelector('.hero'),stage=document.querySelector('.stage'),root=document.documentElement;
   if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;
-  const SPB=60/190.035,B0=0.023,SONG0=36.9;   // hero video t=0 = song time 36.9s (GOLIATH BREAKER)
-  let W=0,H=0,last=-1,drops=[],prev=performance.now();
+  const SPB=60/190.035,B0=0.023,SONG0=36.9;   // hero video t=0 = song time 36.9s (GOLIATH BREAKER, BPM190)
+  let W=0,H=0,last=-1,stars=[],prev=performance.now(),flash=0;
   function fit(){const d=Math.min(2,devicePixelRatio||1);W=hero.clientWidth;H=hero.clientHeight;cv.width=W*d;cv.height=H*d;g.setTransform(d,0,0,d,0,0)}
   addEventListener('resize',fit);fit();
-  // edges only: x near the left/right border (a little more on wide screens)
-  const edgeX=()=>{const band=Math.max(40,W*.16),u=Math.pow(Math.random(),1.6)*band;return Math.random()<.5?u:W-u};
-  function drop(strong){drops.push({x:edgeX(),y:-20+Math.random()*H*.9,len:6+Math.random()*12,v:28+Math.random()*40,a:(strong?.22:.12)+Math.random()*.1,t:performance.now(),life:1600+Math.random()*1800})}
+  // x outside the framed video when there is room, otherwise along the screen edges
+  function laneX(){const h=hero.getBoundingClientRect(),r=stage.getBoundingClientRect(),fx=r.width*.3;
+    const L=r.left-h.left-fx,Rr=r.right-h.left+fx;
+    if(L>60)return Math.random()<.5?Math.random()*(L-10):Rr+10+Math.random()*(W-Rr-10);
+    const band=Math.max(36,W*.2);return Math.random()<.5?Math.random()*band:W-Math.random()*band}
+  function star(big){stars.push({x:laneX(),y:-20-Math.random()*40,vy:(big?260:150)+Math.random()*120,vx:(Math.random()-.5)*20+(big?-40:0),
+    r:big?5+Math.random()*2:1.8+Math.random()*2.4,big,t:performance.now(),spin:Math.random()*6,life:big?2200:1800+Math.random()*1600})}
+  function sparkle(x,y,r,a,rot){g.save();g.translate(x,y);g.rotate(rot);g.globalAlpha=a;
+    const gr=g.createRadialGradient(0,0,0,0,0,r*4);gr.addColorStop(0,'rgba(255,240,190,.9)');gr.addColorStop(.25,'rgba(246,215,122,.35)');gr.addColorStop(1,'rgba(246,215,122,0)');
+    g.fillStyle=gr;g.beginPath();g.arc(0,0,r*4,0,7);g.fill();
+    g.fillStyle='#fff6d6';g.beginPath();g.moveTo(0,-r*2.6);g.quadraticCurveTo(r*.25,-r*.25,r*2.6,0);g.quadraticCurveTo(r*.25,r*.25,0,r*2.6);g.quadraticCurveTo(-r*.25,r*.25,-r*2.6,0);g.quadraticCurveTo(-r*.25,-r*.25,0,-r*2.6);g.fill();g.restore()}
   function frame(now){
     requestAnimationFrame(frame);const dt=Math.min(.05,(now-prev)/1000);prev=now;
-    const r=hero.getBoundingClientRect();if(r.bottom<0||r.top>innerHeight)return;
+    const rr=hero.getBoundingClientRect();if(rr.bottom<0||rr.top>innerHeight)return;
     g.clearRect(0,0,W,H);
     const ph=((v.currentTime||0)+SONG0-B0)/SPB,k=Math.floor(ph),f=ph-k,on=!v.paused;
-    if(on&&k!==last){if(last>=0&&k>last){const n=k%4===0?5:2;for(let i=0;i<n;i++)drop(k%4===0)}last=k}
-    if(Math.random()<dt*6)drop(false);                       // a constant fine drizzle
-    const env=on?Math.pow(1-f,3)*(k%4===0?1:.55):0;
+    if(on&&k!==last){if(last>=0&&k>last){const down=k%4===0;
+        if(down)star(true);for(let i=0;i<(down?4:2);i++)star(false);flash=down?1:.6}
+      last=k}
+    flash=Math.max(0,flash-dt*3.2);
+    const env=on?Math.pow(1-f,3)*(k%4===0?1:.6):0;
     root.style.setProperty('--beat',env.toFixed(3));
-    // the edges breathe very faintly with the beat
-    const gw=Math.max(60,W*.14),a=.025+env*.05;
-    let lg=g.createLinearGradient(0,0,gw,0);lg.addColorStop(0,'rgba(217,165,33,'+a+')');lg.addColorStop(1,'rgba(217,165,33,0)');g.fillStyle=lg;g.fillRect(0,0,gw,H);
-    lg=g.createLinearGradient(W,0,W-gw,0);lg.addColorStop(0,'rgba(217,165,33,'+a+')');lg.addColorStop(1,'rgba(217,165,33,0)');g.fillStyle=lg;g.fillRect(W-gw,0,gw,H);
-    g.lineCap='round';
-    drops=drops.filter(d=>{const p=(now-d.t)/d.life;if(p>1)return false;
-      const y=d.y+d.v*(now-d.t)/1000,fade=Math.sin(p*Math.PI),edge=1-Math.min(1,Math.min(d.x,W-d.x)/(W*.2));
-      g.strokeStyle='rgba(246,215,122,'+(d.a*fade*edge*(1+env*.8)).toFixed(3)+')';g.lineWidth=1;
-      g.beginPath();g.moveTo(d.x,y);g.lineTo(d.x-d.len*.18,y+d.len);g.stroke();return true});
+    stars=stars.filter(s=>{const age=(now-s.t)/1000,p=age*1000/s.life;if(p>1)return false;
+      const x=s.x+s.vx*age,y=s.y+s.vy*age;if(y>H+40)return false;
+      const fade=p<.08?p/.08:1-Math.pow((p-.08)/.92,2),tw=1+flash*(s.big?.6:1.1);  // every star twinkles on the beat
+      // trail
+      const tl=s.big?90:28+s.r*6,ang=Math.atan2(s.vy,s.vx);
+      const tg=g.createLinearGradient(x,y,x-Math.cos(ang)*tl,y-Math.sin(ang)*tl);tg.addColorStop(0,'rgba(246,215,122,'+(.5*fade).toFixed(3)+')');tg.addColorStop(1,'rgba(246,215,122,0)');
+      g.strokeStyle=tg;g.lineWidth=s.big?2:1;g.beginPath();g.moveTo(x,y);g.lineTo(x-Math.cos(ang)*tl,y-Math.sin(ang)*tl);g.stroke();
+      sparkle(x,y,s.r*tw,Math.min(1,fade*(.75+flash*.4)),s.spin+age*(s.big?2:1));return true});
   }
   requestAnimationFrame(frame);
 })();
