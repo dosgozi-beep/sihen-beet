@@ -1718,6 +1718,7 @@ function finish(){
     lastRank=rkSubmit(SONG.id,D,{n:pName(),s,m:ap?'AP':fc?'FC':'',r:K?'':'RANK '+rank,c:st.maxCombo,t:Date.now()});
     if(lastRank.pos){h='<span class="rkIn" id="rkInMsg">🏆 '+(K?'ランキング '+lastRank.pos+'い に はいったよ！':'ランキング '+lastRank.pos+'位にランクイン！')+(pName()?'':'<br><small style="font-weight:400">タップして なまえを いれよう</small>')+'</span>'+h}
     if(ONL.ok&&s>0&&!SONG.custom){const sk=SONG.id+':'+D,mk=ap?'AP':fc?'FC':'';
+      sbRpc('beet_play',{p_notes:Math.min(3000,st.P+st.G+st.D)}).catch(()=>{});   // the play counter on the official site
       const pb=ONL.myRank[sk];
       if(!pb||s>pb.s||SBQ.q[sk])sbQueue(SONG.id,D,{score:s,mark:mk,combo:st.maxCombo});
       sbFlush().then(res=>{

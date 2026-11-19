@@ -147,6 +147,64 @@ button{font:inherit;color:inherit}
 .board .go{display:block;text-align:center;margin-top:16px;font-size:12px;letter-spacing:.2em;color:var(--gold2)}
 .info .torank{display:block;margin-top:12px;text-align:center;font-size:11px;letter-spacing:.2em;color:var(--gold2);border-top:1px solid rgba(246,215,122,.2);padding-top:10px;background:none;border-left:0;border-right:0;border-bottom:0;width:100%;cursor:pointer}
 
+/* ===== 殿堂入りの電光掲示 ===== */
+.fame{position:absolute;z-index:5;top:0;left:0;right:0;height:34px;display:flex;align-items:center;overflow:hidden;background:linear-gradient(90deg,rgba(12,8,5,.9),rgba(12,8,5,.55) 15%,rgba(12,8,5,.55) 85%,rgba(12,8,5,.9));border-bottom:1px solid rgba(246,215,122,.25);opacity:0;transition:opacity 1s}
+.fame.on{opacity:1}
+.fame b{flex:none;position:relative;z-index:2;height:100%;display:flex;align-items:center;padding:0 14px;font-size:10px;letter-spacing:.3em;color:#2a1406;background:var(--gold2)}
+.fame .tk{display:flex;gap:34px;white-space:nowrap;animation:flow 60s linear infinite;padding-left:20px}
+.fame .tk span{font-size:12px;letter-spacing:.08em;color:var(--ink)}
+.fame .tk em{font-style:normal;color:var(--gold2);font-family:var(--mincho);font-weight:800;margin:0 .4em}
+.fame .tk i{font-style:normal;font-size:9px;color:var(--mute);letter-spacing:.15em}
+.fame .tk .new{color:#2a1406;background:#ff9ad5;font-size:9px;font-weight:700;padding:1px 5px;margin-left:6px}
+
+/* ===== みんなで刻んだビート ===== */
+.count{padding:10svh 20px 4svh;text-align:center;display:none}
+.count.on{display:block}
+.count .nums{display:flex;justify-content:center;gap:clamp(30px,9vw,110px);flex-wrap:wrap;margin-top:8px}
+.count .num b{display:block;font-family:var(--mincho);font-weight:800;font-size:clamp(40px,10vw,84px);line-height:1;font-variant-numeric:tabular-nums;
+  background:linear-gradient(180deg,#fff6d6,#f2c95a 55%,#b9780f);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 0 #2a1406)}
+.count .num span{display:block;margin-top:10px;font-size:11px;letter-spacing:.3em;color:var(--mute)}
+
+/* ===== メイキング ===== */
+.making{padding:12svh 0 6svh}
+.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;width:min(1180px,calc(100% - 32px));margin:0 auto}
+.step{position:relative;min-width:0;aspect-ratio:3/4;overflow:hidden;background:#000;box-shadow:0 0 0 1px rgba(246,215,122,.35),0 0 0 5px rgba(12,8,5,.9),0 0 0 6px rgba(217,165,33,.25)}
+.step .pic{position:absolute;inset:0;background:center/cover no-repeat;opacity:.7;transition:transform 1.2s,opacity .5s}
+.step:hover .pic{transform:scale(1.06);opacity:.9}
+.step::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 40%,rgba(12,8,5,.95))}
+.step .cap{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:18px}
+.step .no{font-size:10px;letter-spacing:.4em;color:var(--gold)}
+.step h3{font-family:var(--mincho);font-weight:800;font-size:clamp(22px,2.6vw,30px);letter-spacing:.15em;margin:6px 0 6px;color:#fff3d6}
+.step p{font-size:12px;line-height:1.8;color:#d6c6a8}
+.step.kotoba .pic{background:radial-gradient(circle at 50% 40%,rgba(217,165,33,.18),transparent 60%),#0c0805}
+.step.kotoba .vt{position:absolute;inset:7% 0 38%;display:flex;align-items:center;justify-content:center;font-family:var(--mincho);color:var(--ink);text-shadow:0 0 12px rgba(246,215,122,.4)}
+.step.kotoba .vt span{writing-mode:vertical-rl;font-size:clamp(13px,1.3vw,16px);line-height:2;letter-spacing:.14em;white-space:nowrap}
+.step.kotoba .vt em{font-style:normal;color:var(--gold2)}
+.step .wave{position:absolute;left:10%;right:10%;top:30%;height:26%;display:flex;align-items:center;gap:3px;z-index:1}
+.step .wave i{flex:1;background:var(--gold2);border-radius:2px;animation:eq 1.2s ease-in-out infinite;opacity:.8}
+@keyframes eq{0%,100%{height:15%}50%{height:100%}}
+
+/* ===== プレイヤーの声 ===== */
+.voices{padding:10svh 0 4svh}
+.vlist{display:flex;gap:16px;overflow-x:auto;padding:6px 20px 18px;scroll-snap-type:x mandatory;scrollbar-width:none;justify-content:safe center}
+.vlist::-webkit-scrollbar{display:none}
+.vc{flex:none;width:260px;scroll-snap-align:center;padding:20px 18px 16px;background:linear-gradient(180deg,rgba(30,20,10,.92),rgba(16,10,5,.95));box-shadow:0 0 0 1px rgba(246,215,122,.35)}
+.vc p{font-family:var(--mincho);font-size:14px;line-height:1.9;color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere}
+.vc p::before{content:"“";display:block;font-size:34px;line-height:.6;color:var(--gold)}
+.vc .who{margin-top:12px;font-size:11px;letter-spacing:.12em;color:var(--gold2)}
+.vc .who small{display:block;color:var(--mute);font-size:10px;margin-top:3px}
+.vempty{text-align:center;font-size:12px;color:var(--mute);padding:10px 0 20px;width:100%}
+.vform{width:min(560px,calc(100% - 32px));margin:18px auto 0;padding:22px;display:grid;gap:12px;background:rgba(16,10,5,.85);box-shadow:0 0 0 1px rgba(246,215,122,.35)}
+.vform h3{font-family:var(--mincho);font-size:16px;letter-spacing:.2em;text-align:center;color:#fff3d6}
+.vform label{display:grid;gap:6px;font-size:11px;letter-spacing:.15em;color:var(--mute)}
+.vform input,.vform select,.vform textarea{font:inherit;font-size:15px;color:var(--ink);background:rgba(0,0,0,.5);border:1px solid rgba(246,215,122,.35);padding:10px 12px;border-radius:0;width:100%}
+.vform textarea{min-height:110px;resize:vertical}
+.vform .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.vform .send{justify-self:center;width:240px;height:54px;font-size:15px;opacity:1;animation:none;margin:6px 0 0;border:0;cursor:pointer}
+.vform .note{text-align:center;font-size:11px;line-height:1.8;color:var(--mute);min-height:1.8em}
+.vform .note.ok{color:var(--gold2)}.vform .note.ng{color:#ffb3b3}
+.vform .cnt{justify-self:end;font-size:10px;color:var(--mute);margin-top:-6px}
+
 /* ===== フッター ===== */
 .foot{text-align:center;padding:4svh 20px 10svh}
 .foot .start{opacity:1;animation:none;margin-top:0}
@@ -158,6 +216,8 @@ button{font:inherit;color:inherit}
   .info .x{display:block}
 }
 @media (max-width:420px){.records{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:900px){.steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.vform .row2{grid-template-columns:1fr}}
 
 @keyframes rise{to{opacity:1;transform:none}}
 @keyframes logoIn{from{opacity:0;transform:translate(-50%,-80%) scale(1.25)}to{opacity:1;transform:translate(-50%,-80%) scale(1)}}
@@ -171,6 +231,7 @@ button{font:inherit;color:inherit}
 <body>
 
 <section class="hero">
+  <div class="fame" id="fame" aria-label="各曲の1位"><b>HALL OF FAME</b><div class="tk" id="fameTk"></div></div>
   <canvas id="beat" aria-hidden="true"></canvas>
   <div class="stage">
     <div class="frame"></div>
@@ -195,6 +256,14 @@ button{font:inherit;color:inherit}
     <p>十弦の立琴にあわせて</p>
     <p>あなたをほめうたいます。</p>
     <p class="gap">詩篇 第百四十四篇</p>
+  </div>
+</section>
+
+<section class="count" id="count">
+  <div class="head"><small>TOGETHER</small><h2>みんなで刻んだビート</h2></div>
+  <div class="nums">
+    <div class="num"><b id="cPlays" data-v="0">0</b><span>プレイ回数</span></div>
+    <div class="num"><b id="cNotes" data-v="0">0</b><span>叩かれたノーツ</span></div>
   </div>
 </section>
 
@@ -229,6 +298,32 @@ button{font:inherit;color:inherit}
   </div>
 </section>
 
+<section class="making" id="making">
+  <div class="head"><small>MAKING</small><h2>この作品ができるまで</h2></div>
+  <div class="steps">
+    <article class="step kotoba"><div class="pic"></div><div class="vt"><span>わが<em>指</em>に教えられます</span></div><div class="cap"><div class="no">01</div><h3>ことば</h3><p>3000年前の詩を、そのまま歌詞に。</p></div></article>
+    <article class="step"><div class="pic" style="background-image:url(assets/disc_dawn.jpg)"></div><div class="wave" aria-hidden="true"></div><div class="cap"><div class="no">02</div><h3>うた</h3><p>AI作曲 Suno で、ことばにメロディを。</p></div></article>
+    <article class="step"><div class="pic" style="background-image:url(assets/mk_art.webp)"></div><div class="cap"><div class="no">03</div><h3>え</h3><p>ChatGPT と Gemini で描いた、金の線画。</p></div></article>
+    <article class="step"><div class="pic" style="background-image:url(assets/mk_boss.webp);background-size:contain;background-position:center 30%"></div><div class="cap"><div class="no">04</div><h3>ゲーム</h3><p>Claude と一緒に、譜面とバトルを組み上げた。</p></div></article>
+  </div>
+</section>
+
+<section class="voices" id="voices">
+  <div class="head"><small>VOICES</small><h2>プレイヤーの声</h2></div>
+  <div class="vlist" id="vlist"><div class="vempty">まだ声が届いていません。最初のひとことを、どうぞ。</div></div>
+  <form class="vform" id="vform" autocomplete="off">
+    <h3>感想をおくる</h3>
+    <div class="row2">
+      <label for="vName">なまえ（ニックネーム）<input id="vName" maxlength="12" placeholder="ななしの羊飼い"></label>
+      <label for="vSong">好きな曲<select id="vSong"><option value="">えらばない</option></select></label>
+    </div>
+    <label for="vMsg">ひとこと<textarea id="vMsg" maxlength="300" placeholder="遊んでみた感想を聞かせてください" required></textarea></label>
+    <div class="cnt" id="vCnt">0 / 300</div>
+    <button class="start send" id="vSend" type="submit">おくる</button>
+    <div class="note" id="vNote">届いた声は、確認したあとでここに載ります。</div>
+  </form>
+</section>
+
 <footer class="foot">
   <a class="start" href="https://sihen-beet.vercel.app/" target="_blank" rel="noopener">ゲームを始める</a>
   <p>© SIHEN BEET</p>
@@ -245,9 +340,9 @@ const SONGS=[
  ['hoshi','ほしと ひつじ','詩篇 第8篇　ダビデの歌','詩篇ソング','星空の下、羊たちと見上げる',120,[8,11,13,2],'song2'],
  ['eagle','わしのように','詩篇 第103篇　ダビデの歌','詩篇ソング','わしのように、若さがよみがえる',132,[8,11,13,2],'song_eagle'],
  ['sky','そらより たかく','詩篇 第103篇　ダビデの歌','詩篇ソング','天が地よりも高いように',111,[6,8,10,1],'song_sky'],
- ['grace','AMAZING GRACE','賛美歌　J. ニュートン（1779）','讃美歌','世界でいちばん歌われてきた、恵みの歌',120,[7,10,17,2],'song_grace'],
- ['joy','JOY TO THE WORLD','賛美歌　詩篇98篇より（I. ワッツ 1719）','讃美歌','もろびとこぞりて、喜びを',128,[8,11,15,2],'song_joy'],
- ['fortress','A MIGHTY FORTRESS','賛美歌　詩篇46篇より（M. ルター 1529）','讃美歌','神はわがやぐら',132,[8,10,15,2],'song_fortress'],
+ ['grace','AMAZING GRACE','作詞 J. ニュートン（1779）','世界の名曲','世界でいちばん歌われてきた、恵みの歌',120,[7,10,17,2],'song_grace'],
+ ['joy','JOY TO THE WORLD','詩篇98篇より　I. ワッツ（1719）','世界の名曲','もろびとこぞりて、喜びを',128,[8,11,15,2],'song_joy'],
+ ['fortress','A MIGHTY FORTRESS','詩篇46篇より　M. ルター（1529）','世界の名曲','神はわがやぐら',132,[8,10,15,2],'song_fortress'],
  ['shepherd','SHEPHERD BOY','詩篇 第23篇　ダビデの歌','COMING SOON','主はわたしの牧者',0,null,null],
  ['hallelu','HALLELU-BEET','詩篇 第150篇','COMING SOON','息のあるものはみな、主をほめたたえよ',0,null,null]];
 
@@ -264,7 +359,7 @@ SONGS.forEach((s,i)=>{
 let cur=null,pinned=false;const aud=document.getElementById('aud'),lis=document.getElementById('iListen');
 function show(b){
   const s=SONGS[+b.dataset.i];cur&&cur.classList.remove('open');cur=b;b.classList.add('open');
-  const g=document.getElementById('iGen');g.textContent=s[3];g.className='gen'+(s[3]==='讃美歌'?' hymn':'');
+  const g=document.getElementById('iGen');g.textContent=s[3];g.className='gen'+(s[3]==='世界の名曲'?' hymn':'');
   document.getElementById('iTitle').textContent=s[1];document.getElementById('iPs').textContent=s[2];document.getElementById('iAb').textContent=s[4];
   const lv=document.getElementById('iLv');lv.innerHTML='';
   if(s[6])['NORMAL','HARD','EXPERT','KIDS'].forEach((n,k)=>{const d=document.createElement('div');d.innerHTML='<dt></dt><dd></dd>';d.querySelector('dt').textContent=n==='KIDS'?'キッズ':n;d.querySelector('dd').textContent=s[6][k];lv.appendChild(d)});
@@ -329,6 +424,55 @@ async function loadRank(){
 }
 const rio=new IntersectionObserver(es=>{if(es[0].isIntersecting){loadRank();rio.disconnect()}},{rootMargin:'300px'});rio.observe(document.getElementById('rank'));
 document.getElementById('iRank').addEventListener('click',()=>{const s=SONGS[+cur.dataset.i];if(!s[6])return;rSong=s[0];pinned=false;hide();loadRank();document.getElementById('rank').scrollIntoView({behavior:'smooth'})});
+
+// ===== 殿堂入り（各曲・各むずかしさの1位） =====
+const DN={NORMAL:'NORMAL',HARD:'HARD',EXPERT:'EXPERT',KIDS:'キッズ'};
+async function sbGet(q){const r=await fetch(SB.url+q,{headers:{apikey:SB.key}});if(!r.ok)throw new Error(r.status);return r.json()}
+sbGet('/rest/v1/beet_scores?select=song,diff,name,score,updated_at&order=score.desc,updated_at.asc&limit=1000').then(rows=>{
+  const best={},day=Date.now()-864e5;rows.forEach(x=>{const k=x.song+':'+x.diff;if(!best[k])best[k]=x});
+  const list=Object.values(best).filter(x=>SONGS.some(s=>s[0]===x.song)).sort((a,b)=>SONGS.findIndex(s=>s[0]===a.song)-SONGS.findIndex(s=>s[0]===b.song)||Object.keys(DN).indexOf(a.diff)-Object.keys(DN).indexOf(b.diff));
+  if(!list.length)return;const tk=document.getElementById('fameTk');
+  const mk=()=>list.forEach(x=>{const sp=document.createElement('span');const s=SONGS.find(z=>z[0]===x.song);
+    sp.append('👑 '+s[1]+' ');const i=document.createElement('i');i.textContent=DN[x.diff]||x.diff;sp.appendChild(i);
+    const e=document.createElement('em');e.textContent=x.name||'ななしの羊飼い';sp.appendChild(e);sp.append((+x.score).toLocaleString());
+    if(new Date(x.updated_at).getTime()>day){const n=document.createElement('span');n.className='new';n.textContent='NEW';sp.appendChild(n)}
+    tk.appendChild(sp)});
+  mk();mk();document.getElementById('fame').classList.add('on');
+}).catch(()=>{});
+
+// ===== みんなで刻んだビート（プレイ回数・ノーツ数） =====
+sbGet('/rest/v1/beet_stats?select=plays,notes&id=eq.1').then(r=>{
+  if(!r.length)return;const sec=document.getElementById('count');sec.classList.add('on');
+  const run=(el,to)=>{const t0=performance.now(),d=2200;(function f(t){const p=Math.min(1,(t-t0)/d),e=1-Math.pow(1-p,4);el.textContent=Math.round(to*e).toLocaleString();if(p<1)requestAnimationFrame(f)})(t0)};
+  const o=new IntersectionObserver(es=>{if(es[0].isIntersecting){run(document.getElementById('cPlays'),+r[0].plays);run(document.getElementById('cNotes'),+r[0].notes);o.disconnect()}},{threshold:.4});o.observe(sec);
+}).catch(()=>{});
+
+// ===== メイキング：うたの波形 =====
+document.querySelectorAll('.wave').forEach(w=>{for(let i=0;i<24;i++){const b=document.createElement('i');b.style.animationDelay=(-(i*37%100)/100*1.2).toFixed(2)+'s';b.style.animationDuration=(0.8+(i*13%7)/10)+'s';w.appendChild(b)}});
+
+// ===== プレイヤーの声 =====
+const vlist=document.getElementById('vlist'),vf=document.getElementById('vform'),vNote=document.getElementById('vNote'),vMsg=document.getElementById('vMsg');
+SONGS.filter(s=>s[6]).forEach(s=>{const o=document.createElement('option');o.value=s[0];o.textContent=s[1];document.getElementById('vSong').appendChild(o)});
+function myPid(){try{const m=JSON.parse(localStorage.getItem('sb_sbMe')||'null');if(m&&m.pid)return m.pid}catch(e){}
+  try{let p=localStorage.getItem('sbhp_pid');if(!p){p=crypto.randomUUID();localStorage.setItem('sbhp_pid',p)}return p}catch(e){return null}}
+try{const n=JSON.parse(localStorage.getItem('sb_pname')||'""');if(n)document.getElementById('vName').value=n}catch(e){}
+vMsg.addEventListener('input',()=>{document.getElementById('vCnt').textContent=vMsg.value.length+' / 300'});
+sbGet('/rest/v1/beet_feedback?select=name,song,message,created_at&order=created_at.desc&limit=30').then(rows=>{
+  if(!rows.length)return;vlist.innerHTML='';
+  rows.forEach(x=>{const c=document.createElement('article');c.className='vc';const p=document.createElement('p');p.textContent=x.message;
+    const w=document.createElement('div');w.className='who';w.textContent=x.name||'ななしの羊飼い';const s=SONGS.find(z=>z[0]===x.song);
+    const sm=document.createElement('small');const d=new Date(x.created_at);sm.textContent=(s?'好きな曲：'+s[1]+'　':'')+(d.getMonth()+1)+'/'+d.getDate();w.appendChild(sm);c.append(p,w);vlist.appendChild(c)});
+}).catch(()=>{});
+vf.addEventListener('submit',async e=>{e.preventDefault();const msg=vMsg.value.trim();
+  if(msg.length<2){vNote.className='note ng';vNote.textContent='ひとことを書いてください。';return}
+  const btn=document.getElementById('vSend');btn.disabled=true;vNote.className='note';vNote.textContent='おくっています…';
+  try{const r=await fetch(SB.url+'/rest/v1/rpc/beet_feedback_post',{method:'POST',headers:{apikey:SB.key,'Content-Type':'application/json'},
+      body:JSON.stringify({p_pid:myPid(),p_name:document.getElementById('vName').value,p_song:document.getElementById('vSong').value,p_message:msg})});
+    if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(/too soon/.test(j.message||'')?'soon':'x')}
+    vMsg.value='';document.getElementById('vCnt').textContent='0 / 300';vNote.className='note ok';vNote.textContent='ありがとうございます！確認したあとで、ここに載ります。';
+  }catch(err){vNote.className='note ng';vNote.textContent=err.message==='soon'?'続けておくるときは、10分ほどあけてください。':'おくれませんでした。少し時間をおいて、もう一度ためしてください。'}
+  finally{btn.disabled=false}
+});
 
 const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }),{threshold:.35});
 const poem=document.getElementById('poem'); io.observe(poem);
