@@ -2068,7 +2068,7 @@ const BOSS={img:{},fx:{}};
 ['stone'].forEach(k=>{const im=new Image();im.onerror=()=>{im._bad=1};im.src='fx_'+k+'.png';BOSS.fx[k]=im});
 const BG_BATTLE=(()=>{const im=new Image();im.onerror=()=>{im._bad=1};im.src='bg_battle.jpg';return im})();
 const okImg=im=>im&&im.complete&&im.naturalWidth>0&&!im._bad;
-function bossImg(k){return okImg(BOSS.img[k])?BOSS.img[k]:okImg(BOSS.img.idle)?BOSS.img.idle:SP.goliath}
+function bossImg(k){for(const c of [k,'idle','attack','angry'])if(okImg(BOSS.img[c]))return BOSS.img[c];return SP.goliath}
 const isBattle=()=>SONG&&SONG.boss!=='stars';
 let BT=null;
 function battleReset(){
