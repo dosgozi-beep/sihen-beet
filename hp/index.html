@@ -113,6 +113,40 @@ button{font:inherit;color:inherit}
 .info .x{position:absolute;right:8px;top:6px;border:0;background:none;color:var(--mute);font-size:18px;cursor:pointer;display:none}
 .room .tip{position:relative;text-align:center;margin-top:28px;font-size:10px;letter-spacing:.35em;color:var(--mute)}
 
+/* ===== 全国ランキング ===== */
+.rank{position:relative;padding:4svh 0 14svh}
+.picker{display:flex;gap:14px;overflow-x:auto;padding:6px 20px 14px;scroll-snap-type:x mandatory;justify-content:safe center;scrollbar-width:none}
+.picker::-webkit-scrollbar{display:none}
+.pick{flex:none;width:64px;appearance:none;border:0;background:none;cursor:pointer;scroll-snap-align:center;display:grid;justify-items:center;gap:6px;opacity:.55;transition:opacity .25s,transform .25s}
+.pick img{width:56px;height:56px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 1px rgba(246,215,122,.35),0 6px 14px rgba(0,0,0,.6)}
+.pick span{font-size:9px;letter-spacing:.06em;color:var(--mute);white-space:nowrap;max-width:64px;overflow:hidden;text-overflow:ellipsis}
+.pick.on{opacity:1;transform:translateY(-3px)}
+.pick.on img{box-shadow:0 0 0 2px var(--gold2),0 0 18px rgba(246,215,122,.5)}
+.pick.on span{color:var(--gold2)}
+.dtabs{display:flex;justify-content:center;gap:8px;margin:6px 0 22px;flex-wrap:wrap}
+.dtab{appearance:none;cursor:pointer;background:none;border:1px solid rgba(246,215,122,.35);color:var(--mute);font-family:var(--mincho);font-weight:700;font-size:12px;letter-spacing:.12em;padding:7px 14px}
+.dtab.on{border-color:var(--gold2);color:#2a1406;background:var(--gold2)}
+.board{position:relative;width:min(560px,calc(100% - 32px));margin:0 auto;padding:26px 22px 20px;background:linear-gradient(180deg,rgba(30,20,10,.92),rgba(16,10,5,.95));
+  box-shadow:0 0 0 1px rgba(246,215,122,.5),0 0 0 6px rgba(12,8,5,.9),0 0 0 7px rgba(217,165,33,.35),0 30px 60px rgba(0,0,0,.6)}
+.board .ttl{text-align:center;font-family:var(--mincho);font-weight:800;font-size:18px;letter-spacing:.12em;color:#fff3d6}
+.board .sub{text-align:center;font-size:10px;letter-spacing:.25em;color:var(--mute);margin:4px 0 16px}
+.rows{list-style:none;display:grid;gap:2px}
+.row{display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:10px;padding:9px 6px;border-bottom:1px solid rgba(246,215,122,.12)}
+.row .n{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-family:var(--mincho);font-weight:800;font-size:14px;color:var(--mute)}
+.row:nth-child(1) .n{background:radial-gradient(circle at 35% 30%,#fff6d0,#d9a521 60%,#7a5512);color:#2a1406;box-shadow:0 0 14px rgba(246,215,122,.6)}
+.row:nth-child(2) .n{background:radial-gradient(circle at 35% 30%,#ffffff,#c3cbd6 60%,#6c7480);color:#1d2026}
+.row:nth-child(3) .n{background:radial-gradient(circle at 35% 30%,#ffe1c4,#c47a3c 60%,#6e3a14);color:#2a1406}
+.row:nth-child(1) .nm{font-size:17px;color:var(--gold2)}
+.row .nm{font-family:var(--mincho);font-weight:700;font-size:15px;color:var(--ink);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.row .nm small{display:block;font-family:var(--gothic);font-weight:400;font-size:9px;letter-spacing:.12em;color:var(--mute);margin-top:2px}
+.row .sc{text-align:right;font-family:var(--mincho);font-weight:800;font-size:17px;font-variant-numeric:tabular-nums;color:#fff3d6}
+.row .mk{display:block;width:max-content;margin:3px 0 0 auto;font-family:var(--gothic);font-size:9px;font-weight:700;letter-spacing:.1em;padding:2px 6px;vertical-align:middle;color:#2a1406;background:var(--gold2)}
+.row .mk.ap{background:linear-gradient(90deg,#ff9ad5,#ffdf8a,#9fe3ff)}
+.board .msg{text-align:center;font-size:12px;line-height:1.9;color:var(--mute);padding:26px 0}
+.board .upd{text-align:right;font-size:9px;letter-spacing:.15em;color:#6f604c;margin-top:12px}
+.board .go{display:block;text-align:center;margin-top:16px;font-size:12px;letter-spacing:.2em;color:var(--gold2)}
+.info .torank{display:block;margin-top:12px;text-align:center;font-size:11px;letter-spacing:.2em;color:var(--gold2);border-top:1px solid rgba(246,215,122,.2);padding-top:10px;background:none;border-left:0;border-right:0;border-bottom:0;width:100%;cursor:pointer}
+
 /* ===== フッター ===== */
 .foot{text-align:center;padding:4svh 20px 10svh}
 .foot .start{opacity:1;animation:none;margin-top:0}
@@ -176,9 +210,23 @@ button{font:inherit;color:inherit}
       <div class="ab" id="iAb"></div>
       <dl id="iLv"></dl>
       <div class="bpm"><span id="iBpm"></span><button class="listen" id="iListen" aria-pressed="false">▶ 試聴</button></div>
+      <button class="torank" id="iRank">🏆 この曲のランキングを見る</button>
     </div>
   </div>
   <p class="tip" id="tip">レコードにふれると、曲の詳細</p>
+</section>
+
+<section class="rank" id="rank">
+  <div class="head"><small>RANKING</small><h2>全国ランキング</h2></div>
+  <div class="picker" id="picker"></div>
+  <div class="dtabs" id="dtabs"></div>
+  <div class="board">
+    <div class="ttl" id="rTtl"></div>
+    <div class="sub" id="rSub">TOP 10</div>
+    <ol class="rows" id="rows"></ol>
+    <div class="upd" id="rUpd"></div>
+    <a class="go" href="https://sihen-beet.vercel.app/" target="_blank" rel="noopener">あなたもランクインをねらう ▶</a>
+  </div>
 </section>
 
 <footer class="foot">
@@ -221,7 +269,7 @@ function show(b){
   const lv=document.getElementById('iLv');lv.innerHTML='';
   if(s[6])['NORMAL','HARD','EXPERT','KIDS'].forEach((n,k)=>{const d=document.createElement('div');d.innerHTML='<dt></dt><dd></dd>';d.querySelector('dt').textContent=n==='KIDS'?'キッズ':n;d.querySelector('dd').textContent=s[6][k];lv.appendChild(d)});
   lv.style.display=s[6]?'':'none';
-  document.getElementById('iBpm').textContent=s[5]?'BPM '+s[5]:'';lis.style.display=s[7]?'':'none';
+  document.getElementById('iBpm').textContent=s[5]?'BPM '+s[5]:'';lis.style.display=s[7]?'':'none';document.getElementById('iRank').style.display=s[6]?'':'none';
   lis.setAttribute('aria-pressed',String(!aud.paused&&aud.dataset.i===b.dataset.i));
   if(matchMedia('(min-width:761px)').matches){ // カードはレコードの横に
     const wr=wall.getBoundingClientRect(),r=b.getBoundingClientRect();let x=r.right-wr.left+18,y=r.top-wr.top-10;
@@ -246,6 +294,41 @@ lis.addEventListener('click',()=>{
 const mark=()=>{recs.querySelectorAll('.rec').forEach(b=>b.classList.toggle('playing',!aud.paused&&aud.dataset.i===b.dataset.i));lis.setAttribute('aria-pressed',String(!!cur&&!aud.paused&&aud.dataset.i===cur.dataset.i))};
 aud.addEventListener('play',mark);aud.addEventListener('pause',mark);aud.addEventListener('ended',mark);
 if(!matchMedia('(hover:hover)').matches)document.getElementById('tip').textContent='レコードをタップすると、曲の詳細';
+
+// ===== 全国ランキング（ゲームと同じデータ） =====
+const SB={url:'https://kdzedfffbgtloyvjexjf.supabase.co',key:'sb_publishable_2yFicxMxEixzXQ5YL65zYA_o4XoNQHI'};
+const DIFFS=['NORMAL','HARD','EXPERT','KIDS'];let rSong='goliath',rDiff='NORMAL',rTimer=0;
+const picker=document.getElementById('picker'),dtabs=document.getElementById('dtabs'),rowsEl=document.getElementById('rows');
+SONGS.filter(s=>s[6]).forEach(s=>{const b=document.createElement('button');b.className='pick';b.type='button';b.dataset.id=s[0];
+  b.innerHTML='<img alt="" loading="lazy"><span></span>';b.querySelector('img').src='assets/disc_'+s[0]+'.jpg';b.querySelector('span').textContent=s[1];
+  b.addEventListener('click',()=>{rSong=s[0];loadRank()});picker.appendChild(b)});
+DIFFS.forEach(d=>{const b=document.createElement('button');b.className='dtab';b.type='button';b.dataset.d=d;b.textContent=d==='KIDS'?'キッズ':d;
+  b.addEventListener('click',()=>{rDiff=d;loadRank()});dtabs.appendChild(b)});
+function msg(t){rowsEl.innerHTML='';const li=document.createElement('li');li.className='msg';li.textContent=t;rowsEl.appendChild(li)}
+async function loadRank(){
+  const s=SONGS.find(x=>x[0]===rSong);
+  picker.querySelectorAll('.pick').forEach(b=>b.classList.toggle('on',b.dataset.id===rSong));
+  dtabs.querySelectorAll('.dtab').forEach(b=>b.classList.toggle('on',b.dataset.d===rDiff));
+  document.getElementById('rTtl').textContent=s[1];document.getElementById('rSub').textContent=(rDiff==='KIDS'?'キッズ':rDiff)+' ・ TOP 10';
+  clearTimeout(rTimer);rTimer=setTimeout(loadRank,60000);
+  try{
+    const q='/rest/v1/beet_scores?select=name,score,mark,combo,updated_at&song=eq.'+encodeURIComponent(rSong)+'&diff=eq.'+rDiff+'&order=score.desc,updated_at.asc&limit=10';
+    const r=await fetch(SB.url+q,{headers:{apikey:SB.key}});if(!r.ok)throw new Error(r.status);
+    const rows=await r.json();if(rSong!==s[0])return;
+    rowsEl.innerHTML='';
+    if(!rows.length){msg('まだ記録がありません。最初の1位になろう！')}
+    rows.forEach((x,i)=>{const li=document.createElement('li');li.className='row';
+      const n=document.createElement('span');n.className='n';n.textContent=i+1;
+      const nm=document.createElement('span');nm.className='nm';nm.textContent=x.name||'ななしの羊飼い';
+      const sm=document.createElement('small');const d=new Date(x.updated_at);sm.textContent=(d.getMonth()+1)+'/'+d.getDate()+'　COMBO '+(x.combo||0);nm.appendChild(sm);
+      const sc=document.createElement('span');sc.className='sc';sc.textContent=(+x.score).toLocaleString();
+      if(x.mark){const mk=document.createElement('span');mk.className='mk'+(x.mark==='AP'?' ap':'');mk.textContent=x.mark==='AP'?'ALL PERFECT':'FULL COMBO';sc.appendChild(mk)}
+      li.append(n,nm,sc);rowsEl.appendChild(li)});
+    const t=new Date();document.getElementById('rUpd').textContent='更新 '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0');
+  }catch(e){msg('ランキングを読みこめませんでした。公式サイト sihen-beet.vercel.app/hp でご覧ください。')}
+}
+const rio=new IntersectionObserver(es=>{if(es[0].isIntersecting){loadRank();rio.disconnect()}},{rootMargin:'300px'});rio.observe(document.getElementById('rank'));
+document.getElementById('iRank').addEventListener('click',()=>{const s=SONGS[+cur.dataset.i];if(!s[6])return;rSong=s[0];pinned=false;hide();loadRank();document.getElementById('rank').scrollIntoView({behavior:'smooth'})});
 
 const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }),{threshold:.35});
 const poem=document.getElementById('poem'); io.observe(poem);
