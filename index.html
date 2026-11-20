@@ -29,6 +29,15 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 @keyframes blink{50%{opacity:.25}}
 @keyframes float{50%{transform:translateY(-6px)}}
 #select>*{flex-shrink:0}
+.vidAsk{display:block;margin:8px 0;padding:12px;border:1px solid rgba(255,223,138,.6);border-radius:12px;background:rgba(40,28,8,.72);text-align:left;font-family:'Zen Maru Gothic',sans-serif;font-size:12px;line-height:1.6;color:#fff;letter-spacing:0}
+.vidAsk b{display:block;font-size:14px;color:#ffdf8a;margin-bottom:4px}
+.vidAsk video{display:block;width:120px;max-height:200px;margin:8px auto;border-radius:8px;background:#000}
+.vidAsk ul{margin:4px 0 6px 1.2em;padding:0;color:rgba(255,255,255,.8);font-size:11px}
+.vidAsk label{display:flex;gap:8px;align-items:flex-start;margin:6px 0;font-size:12px}
+.vidAsk label input{margin-top:3px;flex:none;width:18px;height:18px}
+.vidAsk .vb{display:flex;gap:8px;margin-top:8px}.vidAsk .vb button{flex:1;padding:10px 6px;border-radius:10px;font-weight:900;font-family:inherit;font-size:13px;border:1px solid rgba(255,255,255,.4);background:rgba(0,0,0,.3);color:#fff}
+.vidAsk .vb button.ok{background:linear-gradient(180deg,#ffe9a8,#f3c969);color:#1a1206;border:0}.vidAsk .vb button:disabled{opacity:.4}
+.vidAsk .vs{margin-top:6px;font-size:11px;color:#9fe3ff}
 #select{justify-content:safe center;overflow-x:hidden;background:rgba(0,0,0,.62);overflow-y:auto;touch-action:pan-y}
 .modes{display:flex;width:min(94vw,520px);gap:6px;margin:2px 0 8px}
 .modes .mode{letter-spacing:.06em;padding:10px 4px}.modes .mode small{letter-spacing:0;font-size:9.5px}
@@ -450,6 +459,8 @@ body.kids #davLink{border-color:var(--kid);box-shadow:0 0 22px rgba(143,227,255,
     <span>OFFSET</span><input id="ofs" type="range" min="-300" max="300" step="5"><output id="ofsO"></output>
     <span>HIT SOUND</span><button class="tog" id="harpTog"></button>
     <span>TIMING</span><button class="tog on" id="calBtn">タイミング合わせ</button>
+    <span>PLAY VIDEO</span><button class="tog" id="recTog"></button><button class="tog" id="vidOff" style="font-size:10px;letter-spacing:0">公開をやめる</button>
+    <div class="hint">PLAY VIDEO：プレイ画面をこの端末の中だけで録画します。全国TOP3に入ったときだけ「公式サイトで公開してもいい？」と確認し、OKしたときだけ送ります（顔や声は入りません）。重いと感じたらOFFに。「公開をやめる」で、送った動画をいつでも取り下げられます。</div>
     <div class="hint">HIT SOUND：曲ごとの楽器（ゴリアテ＝シンセ、DAWN＝ギター、WOVEN＝ベル、ほし＝チェレスタ、わし＝ブラス、そら＝ウクレレ）が、その瞬間の和音に合った音で、リズムぴったりに鳴ります。長押し中は音が伸び、コンボが続くほど音が高くなります。うまく叩くほど曲が盛り上がり（FEVER）、ミスすると音がこもります。<br>OFFSET：ノーツが音より早く見えるなら＋、遅く見えるなら−に調整</div>
   </div>
 </div>
@@ -1058,13 +1069,20 @@ function applyMode(){
   buildCarousel();coopUI();
 }
 function openSelect(){
-  stopSrc();mode='select';$('hud').classList.remove('on');
+  recStop(true);stopSrc();mode='select';$('hud').classList.remove('on');
   show('select');applyMode();updBadges();fitSoon();
   clearTimeout(prevTimer);prevTimer=setTimeout(()=>{const so=songById(curSong);if(mode==='select'&&!so.lock)startPreview(so)},350);
 }
 modeEls.forEach(e=>e.addEventListener('click',()=>{cfg.mode=e.dataset.m;store.set('mode',cfg.mode);curSong=null;applyMode()}));
 $('spd').addEventListener('input',e=>{const k=kids()?'spdK':'spd';cfg[k]=+e.target.value;$('spdO').textContent=cfg[k].toFixed(1);store.set(k,cfg[k])});
 (()=>{const el=$('ofs'),o=$('ofsO');el.value=cfg.ofs;const up=()=>{cfg.ofs=+el.value;o.textContent=(cfg.ofs>0?'+':'')+cfg.ofs+'ms';store.set('ofs',cfg.ofs)};el.addEventListener('input',up);up()})();
+const REC={on:store.get('recOn',1),mr:null,chunks:[],blob:null,mime:'',cv:null,x:null,dest:null,done:null,meta:null};
+function recUI(){const t=$('recTog');t.textContent=REC.on?'ON':'OFF';t.classList.toggle('on',!!REC.on)}
+$('recTog').addEventListener('click',()=>{REC.on=REC.on?0:1;store.set('recOn',REC.on);recUI()});recUI();
+$('vidOff').addEventListener('click',async()=>{const b=$('vidOff');if(!ONL.ok)return;if(!confirmVid(b))return;b.disabled=true;
+  try{const ps=await sbRpc('beet_video_withdraw',{});for(const o of (ps||[]))fetch(SB.url+'/storage/v1/object/beet-videos/'+o,{method:'DELETE',headers:{apikey:SB.key}}).catch(()=>{});b.textContent='取り下げました'}
+  catch(e){b.textContent=/bad player/.test(String(e.j&&e.j.message))?'動画はありません':'失敗しました';b.disabled=false}});
+function confirmVid(b){if(b.dataset.arm){delete b.dataset.arm;return true}b.dataset.arm=1;b.textContent='もう一度押すと取り下げ';setTimeout(()=>{if(b.dataset.arm){delete b.dataset.arm;b.textContent='公開をやめる'}},4000);return false}
 function harpUI(){const t=$('harpTog');t.textContent=cfg.harp?'ON':'OFF';t.classList.toggle('on',!!cfg.harp)}
 $('harpTog').addEventListener('click',()=>{cfg.harp=cfg.harp?0:1;store.set('harp',cfg.harp);harpUI();if(cfg.harp&&A.fx){SONG=songById(curSong);CH=CHS[SONG.id]||CH;voice(4,.5,0,{sparkle:1})}});harpUI();
 $('startBtn').addEventListener('click',async()=>{
@@ -1116,17 +1134,18 @@ function startGame(){
     const e=startAt+CH.cut;srcGain.gain.setValueAtTime(1,e-1.4);srcGain.gain.exponentialRampToValueAtTime(0.0001,e+0.2);try{src.stop(e+0.4)}catch(x){}
   }
   mode='play';show('none');$('hud').classList.add('on');
+  recStart();
 }
 function stopSrc(){if(src){try{src.stop()}catch(e){}src.disconnect();src=null}fever.on=false;for(const n of notes)if(n.sus)stopHold(n)}
 function songTime(){return actx.currentTime-startAt-(actx.outputLatency||actx.baseLatency||0)-cfg.ofs/1000}
 const speed=()=>D==='KIDS'?cfg.spdK:cfg.spd;
 
-function pauseGame(ask){if(mode!=='play')return;mode='pause';actx.suspend();$('pause').classList.toggle('ask',!!ask);$('pauseH').textContent=ask?(D==='KIDS'?'もどる？':'もどりますか？'):'PAUSE';$('pauseSong').textContent=SONG.title+' ・ '+(D==='KIDS'?'キッズ':D);show('pause')}
+function pauseGame(ask){if(mode!=='play')return;mode='pause';recPause(true);actx.suspend();$('pause').classList.toggle('ask',!!ask);$('pauseH').textContent=ask?(D==='KIDS'?'もどる？':'もどりますか？'):'PAUSE';$('pauseSong').textContent=SONG.title+' ・ '+(D==='KIDS'?'キッズ':D);show('pause')}
 $('homeBtn').addEventListener('pointerdown',e=>{e.stopPropagation();pauseGame(true)});
 let titleBack=false;
-$('titleBtn').addEventListener('click',()=>{stopSrc();actx.resume();stopPreview();clearTimeout(prevTimer);$('hud').classList.remove('on');mode='title';titleBack=true;show('title')});
+$('titleBtn').addEventListener('click',()=>{recStop(true);stopSrc();actx.resume();stopPreview();clearTimeout(prevTimer);$('hud').classList.remove('on');mode='title';titleBack=true;show('title')});
 $('pauseBtn').addEventListener('pointerdown',e=>{e.stopPropagation();pauseGame()});
-$('resumeBtn').addEventListener('click',()=>{show('none');actx.resume().then(()=>{mode='play'})});
+$('resumeBtn').addEventListener('click',()=>{show('none');actx.resume().then(()=>{mode='play';recPause(false)})});
 $('retryBtn').addEventListener('click',()=>{actx.resume().then(startGame)});
 $('quitBtn').addEventListener('click',()=>{stopSrc();actx.resume();openSelect()});
 $('rRetry').addEventListener('click',startGame);
@@ -1682,6 +1701,7 @@ function davSay(win,ap,K){
   $('davAskTxt').textContent=K?'ぼくの こと しりたい ひとは こっち！':'ぼくについて知りたい人はこちら';
 }
 function finish(){
+  recStop(false);
   mode='result';fever.on=false;$('hud').classList.remove('on');
   const s=Math.round(1e6*st.sum/st.units);
   const win=hp()<=0||st.goliathDown, ap=st.P===st.units, fc=st.M===0, K=D==='KIDS';
@@ -1741,7 +1761,8 @@ function finish(){
         const mr=ONL.myRank[sk];
         if(SBQ.q[sk]){el.textContent='🌏 '+(K?'ぜんこく ランキングに おくれなかったよ':'全国ランキングに送れませんでした')+'（'+sbWhy(res.err)+'）';el.style.borderColor='#ff9aa8';el.style.color='#ffc2cc';el.style.background='rgba(255,120,140,.12)';
           el.appendChild(document.createElement('br'));const sm=document.createElement('small');sm.style.fontWeight='400';sm.textContent=K?'つぎに ひらいたときに もういちど おくるよ':'記録は保存しておき、次にランキングを開いたときに自動で送ります';el.appendChild(sm)}
-        else if(mr){el.textContent='🌏 '+(K?'ぜんこく '+mr.r+'い！':'全国ランキング '+mr.r+'位！')+(pb&&s<=pb.s?(K?'（じこベストは そのまま）':'（自己ベストの記録）'):'')}
+        else if(mr){el.textContent='🌏 '+(K?'ぜんこく '+mr.r+'い！':'全国ランキング '+mr.r+'位！')+(pb&&s<=pb.s?(K?'（じこベストは そのまま）':'（自己ベストの記録）'):'');
+          if(!K&&mr.r<=3&&(!pb||s>pb.s)&&REC.done){const meta=REC.meta;REC.done.then(()=>{if(mode==='result')vidAsk(meta,s,mr.r)})}}
         else return;
         el.addEventListener('click',()=>{RK.scope='online';$('rRankBtn').click()});rp.insertBefore(el,rp.firstChild);
       });
@@ -1750,6 +1771,71 @@ function finish(){
   }
   coopFinish({s,rank,maxCombo:st.maxCombo,ap,fc});$('rRetry').style.display=coopOn()?'none':'';
   setTimeout(()=>show('result'),400);
+}
+
+// ================= PLAY VIDEO (top 3 only, with the player's consent) =================
+// Recorded on this device only. Nothing is sent unless the player reaches the national TOP 3 AND says yes.
+function recOK(){return !!(window.MediaRecorder&&HTMLCanvasElement.prototype.captureStream&&window.MediaStream)}
+function recMime(){for(const m of ['video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp8,opus','video/webm'])try{if(MediaRecorder.isTypeSupported(m))return m}catch(e){}return ''}
+function recStop(discard){const mr=REC.mr;REC.mr=null;if(discard)REC.blob=null;if(mr&&mr.state!=='inactive'){mr._discard=!!discard;try{mr.stop()}catch(e){}}}
+function recStart(){
+  recStop(true);REC.done=null;
+  if(!REC.on||!ONL.ok||D==='KIDS'||SONG.custom||coopOn()||!recOK())return;
+  try{
+    const w=360,h=Math.round(w*H/W/2)*2;if(!REC.cv)REC.cv=document.createElement('canvas');REC.cv.width=w;REC.cv.height=Math.min(h,780);REC.x=REC.cv.getContext('2d');
+    if(!REC.dest){REC.dest=actx.createMediaStreamDestination();A.master.connect(REC.dest)}
+    const vs=REC.cv.captureStream(30),ms=new MediaStream([...vs.getVideoTracks(),...REC.dest.stream.getAudioTracks()]);
+    REC.mime=recMime();REC.chunks=[];recFrame(true);
+    const mr=new MediaRecorder(ms,REC.mime?{mimeType:REC.mime,videoBitsPerSecond:800000,audioBitsPerSecond:96000}:{videoBitsPerSecond:800000});
+    REC.meta={song:SONG.id,diff:D};
+    REC.done=new Promise(res=>{mr.onstop=()=>{vs.getTracks().forEach(t=>t.stop());
+      if(!mr._discard&&REC.chunks.length){const ty=((mr.mimeType||REC.mime||'video/webm').split(';')[0]);REC.blob=new Blob(REC.chunks,{type:ty.indexOf('mp4')>=0?'video/mp4':'video/webm'})}
+      REC.chunks=[];res(REC.blob)}});
+    mr.ondataavailable=e=>{if(e.data&&e.data.size)REC.chunks.push(e.data)};
+    mr.start(1000);REC.mr=mr;
+  }catch(e){REC.mr=null}
+}
+function recFrame(force){
+  if(!REC.mr&&!force)return;const x=REC.x,w=REC.cv.width,h=REC.cv.height;
+  const sc=Math.max(w/cv.width,h/cv.height),dw=cv.width*sc,dh=cv.height*sc;
+  x.fillStyle='#000';x.fillRect(0,0,w,h);x.drawImage(cv,(w-dw)/2,(h-dh)/2,dw,dh);
+  x.fillStyle='rgba(0,0,0,.5)';x.fillRect(0,0,w,24);
+  x.textBaseline='middle';x.textAlign='left';x.fillStyle='#fff';x.font='900 14px Orbitron, sans-serif';x.fillText(String(Math.round(dispScore)).padStart(7,'0'),8,12);
+  x.textAlign='right';x.fillStyle='#ffdf8a';x.font='800 10px sans-serif';x.fillText('SIHEN BEET  '+(SONG.short||SONG.title)+'  '+D,w-8,12);
+}
+function recPause(on){const mr=REC.mr;if(!mr)return;try{if(on&&mr.state==='recording')mr.pause();else if(!on&&mr.state==='paused')mr.resume()}catch(e){}}
+async function vidUpload(meta,score,blob,setS){
+  const slot=await sbRpc('beet_video_slot',{p_song:meta.song,p_diff:meta.diff,p_score:score,p_mime:blob.type});
+  setS('送信中…（'+(blob.size/1048576).toFixed(1)+'MB）');
+  const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),180000);
+  try{const r=await fetch(SB.url+'/storage/v1/object/beet-videos/'+slot.path,{method:'POST',headers:{apikey:SB.key,'Content-Type':blob.type,'x-upsert':'false'},body:blob,signal:ctl.signal});
+    if(!r.ok)throw Object.assign(new Error('up '+r.status),{j:await r.json().catch(()=>null)})}finally{clearTimeout(tm)}
+  await sbRpc('beet_video_done',{p_id:slot.id});
+  for(const o of (slot.old||[]))fetch(SB.url+'/storage/v1/object/beet-videos/'+o,{method:'DELETE',headers:{apikey:SB.key}}).catch(()=>{});
+}
+// the consent card on the result screen
+function vidAsk(meta,score,rank){
+  const blob=REC.blob;if(!blob||blob.size<20000)return;
+  if(blob.size>25*1048576)return;
+  const rp=$('rProg'),box=document.createElement('div');box.className='vidAsk';
+  const url=URL.createObjectURL(blob);
+  box.innerHTML='<b>🎬 全国'+rank+'位！ プレイ動画を公開しませんか？</b>'+
+    '公式サイトのランキングで、TOP3のプレイ動画として見られるようになります。'+
+    '<video controls playsinline preload="metadata"></video>'+
+    '<ul><li>公開されるのは、上の動画（ゲーム画面と音）となまえ「<span class="vn"></span>」だけです。顔や声は入りません。</li>'+
+    '<li>運営が内容を確認してから公開します。</li><li>設定の「公開をやめる」で、いつでも取り下げられます。</li></ul>'+
+    '<label><input type="checkbox" class="c1">公開に同意します</label>'+
+    '<label><input type="checkbox" class="c2">18歳未満の人は、おうちの人に許可をもらいました（18歳以上の人もチェック）</label>'+
+    '<div class="vb"><button class="ok" disabled>公開をお願いする</button><button class="no">公開しない</button></div><div class="vs"></div>';
+  box.querySelector('video').src=url;box.querySelector('.vn').textContent=pName()||'ななしの羊飼い';
+  const c1=box.querySelector('.c1'),c2=box.querySelector('.c2'),ok=box.querySelector('.ok'),no=box.querySelector('.no'),vs=box.querySelector('.vs');
+  const upd=()=>{ok.disabled=!(c1.checked&&c2.checked)};c1.onchange=upd;c2.onchange=upd;
+  const setS=t=>{vs.textContent=t};
+  no.onclick=()=>{REC.blob=null;URL.revokeObjectURL(url);box.innerHTML='<b>🎬 わかりました</b>動画は送らずに消しました。';};
+  ok.onclick=async()=>{ok.disabled=no.disabled=c1.disabled=c2.disabled=true;setS('準備中…');
+    try{await vidUpload(meta,score,blob,setS);REC.blob=null;box.innerHTML='<b>🎬 ありがとう！</b>運営が確認したあと、公式サイトのランキングに公開されます。取り下げたいときは、設定の「公開をやめる」から。'}
+    catch(e){const m=String(e.j&&e.j.message||e.message||'');setS(/not top3|not best/.test(m)?'もうTOP3の記録ではないため送れませんでした':/too many/.test(m)?'しばらくしてからもう一度お試しください':'送れませんでした（'+(e.name==='AbortError'?'時間切れ':m||'通信エラー')+'）');ok.disabled=no.disabled=c1.disabled=c2.disabled=false;upd()}};
+  rp.insertBefore(box,rp.firstChild?rp.firstChild.nextSibling:null);
 }
 
 // ================= RENDER =================
@@ -2391,14 +2477,14 @@ function frame(){
   if($('loading').classList.contains('on'))drawLoadingSlides();
   if(st&&(mode==='play'||mode==='pause')){const target=Math.round(1e6*st.sum/st.units);dispScore+=(target-dispScore)*0.25;if(Math.abs(target-dispScore)<1)dispScore=target;$('score').textContent=String(Math.round(dispScore)).padStart(7,'0')}
   if(inGame&&mode!=='result'){battleTick(t,beatN);coopTick();cheerTick();drawBoss(t,L,beatN)}
-  if(inGame){if(mode!=='result')drawDavid(t,L,climax,beatN);drawField(t,L,climax,pulse,beatN);drawFX(L);if(mode!=='result')drawBossFx(L);if(mode!=='result'){drawUI(t,L);topMsgDraw()}}
+  if(inGame){if(mode!=='result')drawDavid(t,L,climax,beatN);drawField(t,L,climax,pulse,beatN);drawFX(L);if(mode!=='result')drawBossFx(L);if(mode!=='result'){drawUI(t,L);topMsgDraw()}recFrame()}
 }
 $('coopBtn').addEventListener('click',coopOpen);$('coopChip').addEventListener('click',coopOpen);
 $('cpClose').addEventListener('click',()=>{coopSaveName();openSelect()});$('cpGo').addEventListener('click',()=>{coopSaveName();rtTrack();openSelect()});
 $('cpMake').addEventListener('click',coopCreate);$('cpJoin').addEventListener('click',coopJoin);$('cpLeave').addEventListener('click',()=>{rtLeave();coopUI()});
 $('cpName').addEventListener('change',()=>{coopSaveName();rtTrack()});
 requestAnimationFrame(frame);
-window.__sb={cheer:()=>cheerMult(),get RT(){return RT},get BT(){return BT},hp:()=>hp(),get CHS(){return CHS},get SONGS(){return SONGS},judgePos:l=>judgePos(l),get A(){return A},get cal(){return cal},get actx(){return actx},probe:async(id)=>{SONG=songById(id);CH=CHS[id];startAt=actx.currentTime;const an=actx.createAnalyser();an.fftSize=2048;A.master.connect(an);const buf=new Float32Array(2048);let pk={};const meas=async(name,fn)=>{fn();let m=0,e=0,c=0;const t0=performance.now();while(performance.now()-t0<700){an.getFloatTimeDomainData(buf);for(const v of buf){m=Math.max(m,Math.abs(v));e+=v*v;c++}await new Promise(r=>setTimeout(r,20))}pk[name]=[+m.toFixed(3),+Math.sqrt(e/c).toFixed(4)]};await meas('tap',()=>voice(3,.55,0,{sparkle:1}));await meas('flick',()=>voice(3,.5,0,{kind:'flick',sparkle:1}));await meas('hold',()=>{const h=holdVoice(3,.55,0);setTimeout(()=>h&&h.stop(actx.currentTime),500)});A.master.disconnect(an);return JSON.stringify(pk)},get prev(){return !!(pvCur&&!pvCur.el.paused)},get pvPlaying(){return Object.keys(PV).filter(k=>!PV[k].el.paused&&!PV[k].el.muted)},get cur(){return curSong},get notes(){return notes},songTime:()=>songTime(),get st(){return st},get mode(){return mode},get fever(){return fever.on},cfg,setMode:m=>{cfg.mode=m;applyMode()},press:(...a)=>press(...a),move:(...a)=>move(...a),release:(...a)=>release(...a),boss:(t,c)=>bossBanner(t,c),banner:t=>{banner={txt:t,t:performance.now(),col:'#ffdf8a',big:1}},get evLag(){return evLag}};
+window.__sb={cheer:()=>cheerMult(),get RT(){return RT},get BT(){return BT},hp:()=>hp(),get CHS(){return CHS},get SONGS(){return SONGS},judgePos:l=>judgePos(l),get A(){return A},get cal(){return cal},get actx(){return actx},probe:async(id)=>{SONG=songById(id);CH=CHS[id];startAt=actx.currentTime;const an=actx.createAnalyser();an.fftSize=2048;A.master.connect(an);const buf=new Float32Array(2048);let pk={};const meas=async(name,fn)=>{fn();let m=0,e=0,c=0;const t0=performance.now();while(performance.now()-t0<700){an.getFloatTimeDomainData(buf);for(const v of buf){m=Math.max(m,Math.abs(v));e+=v*v;c++}await new Promise(r=>setTimeout(r,20))}pk[name]=[+m.toFixed(3),+Math.sqrt(e/c).toFixed(4)]};await meas('tap',()=>voice(3,.55,0,{sparkle:1}));await meas('flick',()=>voice(3,.5,0,{kind:'flick',sparkle:1}));await meas('hold',()=>{const h=holdVoice(3,.55,0);setTimeout(()=>h&&h.stop(actx.currentTime),500)});A.master.disconnect(an);return JSON.stringify(pk)},get prev(){return !!(pvCur&&!pvCur.el.paused)},get pvPlaying(){return Object.keys(PV).filter(k=>!PV[k].el.paused&&!PV[k].el.muted)},get cur(){return curSong},get notes(){return notes},songTime:()=>songTime(),get st(){return st},get mode(){return mode},get fever(){return fever.on},cfg,setMode:m=>{cfg.mode=m;applyMode()},press:(...a)=>press(...a),move:(...a)=>move(...a),release:(...a)=>release(...a),boss:(t,c)=>bossBanner(t,c),banner:t=>{banner={txt:t,t:performance.now(),col:'#ffdf8a',big:1}},get evLag(){return evLag},get REC(){return REC},recStop:d=>recStop(d),vidAsk:(m,sc,r)=>{show('result');vidAsk(m,sc,r)}};
 })();
 </script>
 </body>

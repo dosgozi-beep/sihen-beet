@@ -139,6 +139,14 @@ button{font:inherit;color:inherit}
 .row:nth-child(1) .nm{font-size:17px;color:var(--gold2)}
 .row .nm{font-family:var(--mincho);font-weight:700;font-size:15px;color:var(--ink);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .row .nm small{display:block;font-family:var(--gothic);font-weight:400;font-size:9px;letter-spacing:.12em;color:var(--mute);margin-top:2px}
+.vbtn{display:inline-flex;align-items:center;gap:4px;margin-top:4px;padding:3px 9px;border:1px solid rgba(246,215,122,.55);border-radius:999px;background:rgba(246,215,122,.1);color:#f6d77a;font-family:var(--gothic);font-size:10px;font-weight:700;letter-spacing:.08em;cursor:pointer}
+.vbtn:hover{background:rgba(246,215,122,.22)}
+#vModal{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.86);padding:16px}
+#vModal.on{display:flex}
+#vModal .vin{position:relative;max-width:min(420px,92vw);width:100%;text-align:center}
+#vModal video{width:100%;max-height:78vh;border-radius:12px;background:#000;box-shadow:0 0 0 1px rgba(246,215,122,.4),0 20px 60px rgba(0,0,0,.6)}
+#vModal .vt{margin:0 0 10px;padding:0 40px;font-family:var(--mincho);font-weight:700;color:#f6d77a;font-size:15px}
+#vModal .vx{position:absolute;top:-6px;right:-4px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.4);background:rgba(0,0,0,.6);color:#fff;font-size:18px;cursor:pointer}
 .row .sc{text-align:right;font-family:var(--mincho);font-weight:800;font-size:17px;font-variant-numeric:tabular-nums;color:#fff3d6}
 .row .mk{display:block;width:max-content;margin:3px 0 0 auto;font-family:var(--gothic);font-size:9px;font-weight:700;letter-spacing:.1em;padding:2px 6px;vertical-align:middle;color:#2a1406;background:var(--gold2)}
 .row .mk.ap{background:linear-gradient(90deg,#ff9ad5,#ffdf8a,#9fe3ff)}
@@ -229,6 +237,8 @@ button{font:inherit;color:inherit}
 </style>
 </head>
 <body>
+<div id="vModal" role="dialog" aria-modal="true"><div class="vin"><button class="vx" type="button" aria-label="とじる">×</button><p class="vt"></p><video controls playsinline></video></div></div>
+
 
 <section class="hero">
   <div class="fame" id="fame" aria-label="各曲の1位"><b>HALL OF FAME</b><div class="tk" id="fameTk"></div></div>
@@ -407,9 +417,10 @@ async function loadRank(){
   document.getElementById('rTtl').textContent=s[1];document.getElementById('rSub').textContent=(rDiff==='KIDS'?'キッズ':rDiff)+' ・ TOP 10';
   clearTimeout(rTimer);rTimer=setTimeout(loadRank,60000);
   try{
-    const q='/rest/v1/beet_scores?select=name,score,mark,combo,updated_at&song=eq.'+encodeURIComponent(rSong)+'&diff=eq.'+rDiff+'&order=score.desc,updated_at.asc&limit=10';
+    const vq=rDiff==='KIDS'?Promise.resolve([]):fetch(SB.url+'/rest/v1/beet_videos?select=player_id,score,path&song=eq.'+encodeURIComponent(rSong)+'&diff=eq.'+rDiff,{headers:{apikey:SB.key}}).then(r=>r.ok?r.json():[]).catch(()=>[]);
+    const q='/rest/v1/beet_scores?select=player_id,name,score,mark,combo,updated_at&song=eq.'+encodeURIComponent(rSong)+'&diff=eq.'+rDiff+'&order=score.desc,updated_at.asc&limit=10';
     const r=await fetch(SB.url+q,{headers:{apikey:SB.key}});if(!r.ok)throw new Error(r.status);
-    const rows=await r.json();if(rSong!==s[0])return;
+    const rows=await r.json();const vids=await vq;if(rSong!==s[0])return;
     rowsEl.innerHTML='';
     if(!rows.length){msg('まだ記録がありません。最初の1位になろう！')}
     rows.forEach((x,i)=>{const li=document.createElement('li');li.className='row';
@@ -418,10 +429,19 @@ async function loadRank(){
       const sm=document.createElement('small');const d=new Date(x.updated_at);sm.textContent=(d.getMonth()+1)+'/'+d.getDate()+'　COMBO '+(x.combo||0);nm.appendChild(sm);
       const sc=document.createElement('span');sc.className='sc';sc.textContent=(+x.score).toLocaleString();
       if(x.mark){const mk=document.createElement('span');mk.className='mk'+(x.mark==='AP'?' ap':'');mk.textContent=x.mark==='AP'?'ALL PERFECT':'FULL COMBO';sc.appendChild(mk)}
+      // TOP3 + the player said yes + the operator approved + it is the video of THIS record
+      const v=i<3&&vids.find(o=>o.player_id===x.player_id&&+o.score===+x.score);
+      if(v&&/^[0-9a-f]{32}\.(mp4|webm)$/.test(v.path)){const vb=document.createElement('button');vb.type='button';vb.className='vbtn';vb.textContent='▶ プレイ動画';
+        vb.addEventListener('click',()=>openVid(SB.url+'/storage/v1/object/public/beet-videos/'+v.path,(i+1)+'位　'+(x.name||'ななしの羊飼い')+'　'+s[1]+' '+(rDiff)));nm.appendChild(vb)}
       li.append(n,nm,sc);rowsEl.appendChild(li)});
     const t=new Date();document.getElementById('rUpd').textContent='更新 '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0');
   }catch(e){msg('ランキングを読みこめませんでした。公式サイト sihen-beet.vercel.app/hp でご覧ください。')}
 }
+const vM=document.getElementById('vModal'),vV=vM.querySelector('video');
+function openVid(u,t){vM.querySelector('.vt').textContent=t;vV.src=u;vM.classList.add('on');vV.play().catch(()=>{})}
+function closeVid(){vV.pause();vV.removeAttribute('src');vV.load();vM.classList.remove('on')}
+vM.addEventListener('click',e=>{if(e.target===vM||e.target.classList.contains('vx'))closeVid()});
+addEventListener('keydown',e=>{if(e.key==='Escape'&&vM.classList.contains('on'))closeVid()});
 const rio=new IntersectionObserver(es=>{if(es[0].isIntersecting){loadRank();rio.disconnect()}},{rootMargin:'300px'});rio.observe(document.getElementById('rank'));
 document.getElementById('iRank').addEventListener('click',()=>{const s=SONGS[+cur.dataset.i];if(!s[6])return;rSong=s[0];pinned=false;hide();loadRank();document.getElementById('rank').scrollIntoView({behavior:'smooth'})});
 
