@@ -213,22 +213,6 @@ button{font:inherit;color:inherit}
 .count .num span{display:block;margin-top:10px;font-size:11px;letter-spacing:.3em;color:var(--mute)}
 
 /* ===== メイキング ===== */
-.making{padding:12svh 0 6svh}
-.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;width:min(1180px,calc(100% - 32px));margin:0 auto}
-.step{position:relative;min-width:0;aspect-ratio:3/4;overflow:hidden;background:#000;box-shadow:0 0 0 1px rgba(246,215,122,.35),0 0 0 5px rgba(12,8,5,.9),0 0 0 6px rgba(217,165,33,.25)}
-.step .pic{position:absolute;inset:0;background:center/cover no-repeat;opacity:.7;transition:transform 1.2s,opacity .5s}
-.step:hover .pic{transform:scale(1.06);opacity:.9}
-.step::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 40%,rgba(12,8,5,.95))}
-.step .cap{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:18px}
-.step .no{font-size:10px;letter-spacing:.4em;color:var(--gold)}
-.step h3{font-family:var(--mincho);font-weight:800;font-size:clamp(22px,2.6vw,30px);letter-spacing:.15em;margin:6px 0 6px;color:#fff3d6}
-.step p{font-size:12px;line-height:1.8;color:#d6c6a8}
-.step.kotoba .pic{background:radial-gradient(circle at 50% 40%,rgba(217,165,33,.18),transparent 60%),#0c0805}
-.step.kotoba .vt{position:absolute;inset:7% 0 38%;display:flex;align-items:center;justify-content:center;font-family:var(--mincho);color:var(--ink);text-shadow:0 0 12px rgba(246,215,122,.4)}
-.step.kotoba .vt span{writing-mode:vertical-rl;font-size:clamp(13px,1.3vw,16px);line-height:2;letter-spacing:.14em;white-space:nowrap}
-.step.kotoba .vt em{font-style:normal;color:var(--gold2)}
-.step .wave{position:absolute;left:10%;right:10%;top:30%;height:26%;display:flex;align-items:center;gap:3px;z-index:1}
-.step .wave i{flex:1;background:var(--gold2);border-radius:2px;animation:eq 1.2s ease-in-out infinite;opacity:.8}
 @keyframes eq{0%,100%{height:15%}50%{height:100%}}
 
 /* ===== プレイヤーの声 ===== */
@@ -263,7 +247,6 @@ button{font:inherit;color:inherit}
   .info .x{display:block}
 }
 @media (max-width:420px){.records{grid-template-columns:repeat(2,1fr)}}
-@media (max-width:900px){.steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:520px){.vform .row2{grid-template-columns:1fr}}
 
 @keyframes rise{to{opacity:1;transform:none}}
@@ -354,16 +337,6 @@ button{font:inherit;color:inherit}
     <ol class="rows" id="rows"></ol>
     <div class="upd" id="rUpd"></div>
     <a class="go" href="https://sihen-beet.vercel.app/" target="_blank" rel="noopener">あなたもランクインをねらう ▶</a>
-  </div>
-</section>
-
-<section class="making" id="making">
-  <div class="head"><small>MAKING</small><h2>この作品ができるまで</h2></div>
-  <div class="steps">
-    <article class="step kotoba"><div class="pic"></div><div class="vt"><span>わが<em>指</em>に教えられます</span></div><div class="cap"><div class="no">01</div><h3>ことば</h3><p>3000年前の詩を、そのまま歌詞に。</p></div></article>
-    <article class="step"><div class="pic" style="background-image:url(assets/disc_dawn.jpg)"></div><div class="wave" aria-hidden="true"></div><div class="cap"><div class="no">02</div><h3>うた</h3><p>AI作曲 Suno で、ことばにメロディを。</p></div></article>
-    <article class="step"><div class="pic" style="background-image:url(assets/mk_art.webp)"></div><div class="cap"><div class="no">03</div><h3>え</h3><p>ChatGPT と Gemini で描いた、金の線画。</p></div></article>
-    <article class="step"><div class="pic" style="background-image:url(assets/mk_boss.webp);background-size:contain;background-position:center 30%"></div><div class="cap"><div class="no">04</div><h3>ゲーム</h3><p>Claude と一緒に、譜面とバトルを組み上げた。</p></div></article>
   </div>
 </section>
 
