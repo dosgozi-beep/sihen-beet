@@ -53,6 +53,18 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 .ig.my{color:#8fe3c8;border:1px solid rgba(143,227,200,.7);background:rgba(143,227,200,.12)}
 .slide .gTag{margin-top:6px;font-family:'Zen Maru Gothic',sans-serif;font-size:10px;font-weight:900;letter-spacing:.05em;padding:2px 8px;border-radius:999px}
 .slide .gTag.psalm{color:var(--gold2);border:1px solid rgba(243,201,105,.6)}
+.slide .gTag.new{color:#1a1206;background:linear-gradient(180deg,#ffe9a8,#f3c969);border:0;margin-right:4px;display:inline-block}
+#newPop{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);animation:npIn .25s ease-out}
+@keyframes npIn{from{opacity:0}to{opacity:1}}
+#newPop .np{width:min(86vw,330px);padding:18px 18px 16px;border-radius:18px;background:linear-gradient(180deg,rgba(40,28,10,.97),rgba(14,10,6,.97));border:1px solid rgba(243,201,105,.7);box-shadow:0 0 40px rgba(243,201,105,.35);text-align:center;font-family:'Zen Maru Gothic',sans-serif;color:#fff;animation:npPop .45s cubic-bezier(.2,1.6,.4,1)}
+@keyframes npPop{from{transform:scale(.7)}to{transform:scale(1)}}
+#newPop .nb{display:inline-block;padding:3px 12px;border-radius:999px;background:linear-gradient(180deg,#ffe9a8,#f3c969);color:#1a1206;font-weight:900;font-size:12px;letter-spacing:.15em}
+#newPop img{display:block;width:150px;height:150px;margin:12px auto 8px;border-radius:50%;animation:npSpin 8s linear infinite;box-shadow:0 0 24px rgba(243,201,105,.45)}
+@keyframes npSpin{to{transform:rotate(360deg)}}
+#newPop .nt{font-size:22px;font-weight:900;color:#ffdf8a}#newPop .ns{font-size:12px;color:rgba(255,255,255,.75);margin-top:2px}
+#newPop .nw{font-size:12px;color:rgba(255,255,255,.85);margin:8px 0 2px;line-height:1.5}
+#newPop .nbt{display:flex;gap:8px;margin-top:14px}#newPop button{flex:1;padding:11px 6px;border-radius:12px;font-family:inherit;font-weight:900;font-size:14px;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.3);color:#fff}
+#newPop button.go{background:linear-gradient(180deg,#ffe9a8,#f3c969);color:#1a1206;border:0}
 .slide .gTag.hymn{color:#d8e8ff;border:1px solid rgba(184,212,255,.6)}
 .mode.my.sel{border-color:#8fe3c8;background:rgba(143,227,200,.15);box-shadow:0 0 14px rgba(143,227,200,.4);color:#8fe3c8}
 .mode{flex:1;text-align:center;padding:11px 6px;border-radius:12px;border:1px solid rgba(255,255,255,.4);background:rgba(0,0,0,.4);font-size:13px;letter-spacing:.15em;cursor:pointer}
@@ -576,7 +588,7 @@ const SONGS=[
  {id:'joy',skyT:[0.77,0.10],bgf:'bg_joy.jpg',disc:1,inst:'bell',title:'JOY TO THE WORLD',psalm:'賛美歌　詩篇98篇より（I. ワッツ 1719）',short:'賛美歌',num:'98',glyph:'HYMN',meta:'BPM 128 ・ 1:32 ・ よろこび',chart:'chart_joy.json',audio:'song_joy',diffs:{NORMAL:8,HARD:11,EXPERT:15,KIDS:2},boss:'stars',c:['#2a1010','#c8a040'],std:8,kid:8,
   g:{std:'JOY',kid:'よろこび',full:'JOYFUL!',fullK:'うれしい！',win:'よろこびの歌が ひびきわたった',lose:'よろこびの歌は まだ続く',winK:'よろこびが いっぱい！',loseK:'もういっかい うたおう！'}},
  {id:'fortress',bgf:'bg_fortress.jpg',disc:1,inst:'brass',title:'A MIGHTY FORTRESS',psalm:'賛美歌　詩篇46篇より（M. ルター 1529）',short:'賛美歌',num:'46',glyph:'HYMN',meta:'BPM 132 ・ 1:53 ・ BOSS: GOLIATH',chart:'chart_fortress.json',audio:'song_fortress',diffs:{NORMAL:8,HARD:10,EXPERT:15,KIDS:2},boss:'goliath',c:['#141820','#7a8aa0'],std:9,kid:9},
- {id:'honey',skyT:[0.77,0.23],bgf:'bg_grace.jpg',disc:1,inst:'bell',title:'みつより あまい',titleIntro:'SWEETER THAN HONEY',psalm:'詩篇 第119篇',short:'詩篇 第119篇',num:'119',meta:'BPM 132 ・ 1:58 ・ みつ',chart:'chart_honey.json',audio:'song_honey',diffs:{NORMAL:7,HARD:10,EXPERT:16,KIDS:2},boss:'stars',maru:1,c:['#2a1a06','#e0a52a'],std:10,kid:10,
+ {id:'honey',added:'2026-11-21',skyT:[0.77,0.23],bgf:'bg_grace.jpg',disc:1,inst:'bell',title:'みつより あまい',titleIntro:'SWEETER THAN HONEY',psalm:'詩篇 第119篇',short:'詩篇 第119篇',num:'119',meta:'BPM 132 ・ 1:58 ・ みつ',chart:'chart_honey.json',audio:'song_honey',diffs:{NORMAL:7,HARD:10,EXPERT:16,KIDS:2},boss:'stars',maru:1,c:['#2a1a06','#e0a52a'],std:10,kid:10,
   g:{std:'HONEY',kid:'みつ',full:'SWEET!',fullK:'あまーい！',win:'み言葉は 蜜にまさって甘い',lose:'もうひとさじ 味わおう',winK:'はちみつより あまいね！',loseK:'もういっかい あじわおう！'}},
  {id:'shepherd',skyT:[0.77,0.17],bgf:'bg_shepherd.jpg',title:'SHEPHERD BOY',psalm:'詩篇 第23篇　ダビデの歌',num:'23',lock:1,c:['#18241a','#4f7a52'],disc:1,std:11},
  {id:'hallelu',skyT:[0.74,0.12],bgf:'bg_hallelu.jpg',title:'HALLELU-BEET',psalm:'詩篇 第150篇',num:'150',lock:1,c:['#2a1d10','#a8792c'],disc:1,std:12}
@@ -596,13 +608,24 @@ const kids=()=>cfg.mode==='kids';
 // harp / fever percussion -> fxGain -> master
 const A={};
 function decode(ab){return new Promise((res,rej)=>{const p=actx.decodeAudioData(ab,res,rej);if(p&&p.then)p.then(res,rej)})}
-async function loadAudio(base){
+// raw bytes can be fetched before the first tap (no AudioContext needed); decoding happens later
+const RAW={},LOADING={};
+function prefetchRaw(base){if(!base||base.startsWith('u_')||BUFS[base]||RAW[base])return;
+  RAW[base]=fetch(base+'.mp3').then(r=>{if(!r.ok)throw new Error(base+' '+r.status);return r.arrayBuffer()});RAW[base].catch(()=>{delete RAW[base]})}
+function loadAudio(base){
+  if(BUFS[base])return Promise.resolve(BUFS[base]);
+  if(LOADING[base])return LOADING[base];
+  const p=loadAudio0(base);LOADING[base]=p;p.then(()=>{delete LOADING[base]},()=>{delete LOADING[base]});return p}
+async function loadAudio0(base){
   if(BUFS[base])return BUFS[base];
+  if(RAW[base]){try{const ab=await RAW[base];delete RAW[base];return BUFS[base]=await decode(ab)}catch(e){delete RAW[base]}}
   if(base&&base.startsWith('u_'))return BUFS[base]=await loadMyBuffer(base);
   const tryOne=async f=>{const r=await fetch(f);if(!r.ok)throw new Error(f+' '+r.status);return decode(await r.arrayBuffer())};
   let b;try{b=await tryOne(base+'.mp3')}catch(e){b=await tryOne(base+'.ogg')}
   return BUFS[base]=b;
 }
+// start fetching the last-played song while the title screen is showing
+try{const s0=SONGS.find(x=>x.id===store.get('song','goliath'));if(s0&&s0.audio&&!s0.lock)prefetchRaw(s0.audio)}catch(e){}
 function buildGraph(){
   A.master=actx.createDynamicsCompressor();A.master.threshold.value=-10;A.master.ratio.value=3;A.master.connect(actx.destination);
   A.filter=actx.createBiquadFilter();A.filter.type='lowpass';A.filter.frequency.value=20000;A.filter.Q.value=0.9;
@@ -742,8 +765,8 @@ $('title').addEventListener('pointerup',async()=>{
   try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
   try{actx=new (window.AudioContext||window.webkitAudioContext)();const s=actx.createBufferSource();s.buffer=actx.createBuffer(1,1,22050);s.connect(actx.destination);s.start();buildGraph();pvUnlockAll();if(actx.state==='suspended')await actx.resume()}catch(e){}
   show('loading');
-  SONGS.forEach(so=>{if(so.bgf&&!BGI[so.id]){const im=new Image();im.src=so.bgf;BGI[so.id]=im}});
-  try{await chartP;if(curSong&&songById(curSong).audio)await loadAudio(songById(curSong).audio).catch(()=>{});if(!store.get('calibDone',0))openCalib();else openSelect();sbFlush();if(songById(curSong).audio)loadAudio(songById(curSong).audio).catch(()=>{})}
+  {const so=songById(curSong);if(so&&so.bgf&&!BGI[so.id]){const im=new Image();im.src=so.bgf;BGI[so.id]=im}}
+  try{await chartP;if(!store.get('calibDone',0))openCalib();else openSelect();sbFlush();setTimeout(bossLoad,8000);const so=songById(curSong);if(so&&so.audio)loadAudio(so.audio).catch(()=>{})}
   catch(e){$('loadTxt').textContent='LOAD ERROR';$('err').textContent='音声の読み込みに失敗しました（'+(e&&e.message||e)+'）。別のブラウザでお試しください。';booting=false}
 });
 
@@ -768,15 +791,33 @@ function renderGenres(){
 }
 document.querySelectorAll('#genres button').forEach(b=>b.addEventListener('click',()=>{cfg.genre=b.dataset.g;store.set('genre',cfg.genre);curSong=null;buildCarousel();renderGenres()}));
 let carList=[],carIdx=0;
+// ---- NEW SONG: a one-time popup on the song list + a NEW tag on the disc (for 45 days after release)
+function isNewSong(so){return !!(so&&so.added&&!so.lock&&Date.now()-Date.parse(so.added)<45*864e5)}
+function markSeen(id){const a=store.get('seenNew',[]);if(!a.includes(id)){a.push(id);store.set('seenNew',a)}}
+function newPop(){
+  if(mode!=='select'||$('newPop')||coopOn())return;const seen=store.get('seenNew',[]);
+  const so=SONGS.find(x=>isNewSong(x)&&!seen.includes(x.id)&&(kids()?true:!myMode()));if(!so)return;
+  const K=kids(),d=document.createElement('div');d.id='newPop';
+  d.innerHTML='<div class="np" role="dialog" aria-modal="true"><span class="nb">NEW SONG</span>'+(so.disc?'<img alt="" src="disc_'+so.id+'.jpg">':'')+
+    '<div class="nt"></div><div class="ns"></div><div class="nw">'+(K?'あたらしい きょくが とどいたよ！':'新しい曲が追加されました！')+'</div>'+
+    '<div class="nbt"><button class="go" type="button">'+(K?'あそんでみる':'さっそく遊ぶ')+'</button><button class="x" type="button">'+(K?'あとで':'あとで')+'</button></div></div>';
+  d.querySelector('.nt').textContent=so.title;d.querySelector('.ns').textContent=(so.titleIntro?so.titleIntro+'　':'')+(so.short||so.psalm||'');
+  const close=()=>{markSeen(so.id);d.remove()};
+  d.querySelector('.x').onclick=close;d.addEventListener('click',e=>{if(e.target===d)close()});
+  d.querySelector('.go').onclick=()=>{close();
+    if(!kids()&&cfg.genre!=='all'&&genreOf(so)!==cfg.genre){cfg.genre='all';store.set('genre','all');curSong=so.id;buildCarousel();renderGenres();return}
+    const k=carList.findIndex(x=>x.id===so.id);if(k>=0)goSlide(k)};
+  document.body.appendChild(d);try{voice&&A.fx&&voice(4,.4,0,{sparkle:1})}catch(e){}
+}
 function buildCarousel(){
   carList=songsFor();
   let i=carList.findIndex(x=>x.id===curSong);if(i<0)i=0;
   const car=$('carousel');car.innerHTML='';$('dots').innerHTML='';
   carList.forEach((so,k)=>{
     const sl=document.createElement('div');sl.className='slide';
-    const img=so.disc?'<img src="disc_'+so.id+'.jpg" alt="">':'';
+    const img=so.disc?'<img src="disc_'+so.id+'.jpg" alt="" loading="lazy" decoding="async">':'';
     const gq=genreOf(so);
-    sl.innerHTML='<div class="disc" style="--c1:'+so.c[0]+';--c2:'+so.c[1]+'"><div class="ph"></div>'+(so.disc?img:'<div class="glyph"><b>'+so.num+'</b><i>'+(so.glyph||'PSALM')+'</i></div>')+'</div>'+(so.lock?'<div class="lockTag">COMING SOON</div>':(gq!=='my'&&cfg.genre==='all'?'<div class="gTag '+gq+'">'+GENRE[gq][0]+'</div>':''));
+    sl.innerHTML='<div class="disc" style="--c1:'+so.c[0]+';--c2:'+so.c[1]+'"><div class="ph"></div>'+(so.disc?img:'<div class="glyph"><b>'+so.num+'</b><i>'+(so.glyph||'PSALM')+'</i></div>')+'</div>'+(so.lock?'<div class="lockTag">COMING SOON</div>':(isNewSong(so)?'<div class="gTag new">NEW</div>':'')+(gq!=='my'&&cfg.genre==='all'?'<div class="gTag '+gq+'">'+GENRE[gq][0]+'</div>':''));
     sl.addEventListener('click',()=>goSlide(k));
     car.appendChild(sl);$('dots').appendChild(document.createElement('i'));
   });
@@ -800,7 +841,7 @@ function selectSlide(k){
   carIdx=k;const so=carList[k];if(!so)return;
   [...$('carousel').children].forEach((sl,j)=>sl.classList.toggle('cur',j===k));
   [...$('dots').children].forEach((d,j)=>d.classList.toggle('on',j===k));
-  curSong=so.id;if(!so.lock)store.set('song',so.id);
+  curSong=so.id;if(!so.lock)store.set('song',so.id);if(so.boss==='goliath')bossLoad();
   renderInfo();if(coopOn()&&coopIsHost()&&!so.lock&&!so.add)rtCast('song',{song:so.id});
   clearTimeout(prevTimer);
   if(so.lock||!so.audio)stopPreview();else prevTimer=setTimeout(()=>startPreview(so),90);
@@ -827,44 +868,45 @@ function renderInfo(){
   if(so.custom){const b=document.createElement('button');b.className='myDel';b.textContent='この曲を消す';
     b.addEventListener('click',()=>{if(b.dataset.ok){deleteMy(so.id)}else{b.dataset.ok=1;b.textContent='もう一度おすと消えます'}});ds.appendChild(b)}
 }
-// ---- song preview on the select screen: streamed <audio> per song so it starts right away
-const PV={};let pvCur=null;
-function pvGet(so){
-  if(PV[so.id])return PV[so.id];
-  const el=new Audio();el.src=so.url||so.audio+'.mp3';el.preload='auto';el.playsInline=true;let gn=null;
-  try{const node=actx.createMediaElementSource(el);gn=actx.createGain();gn.gain.value=0;node.connect(gn).connect(A.master)}catch(e){}
-  return PV[so.id]={el,gn,start:null};
-}
-function pvUnlockAll(){ // called inside the first tap so iOS lets these elements play later
-  for(const so of SONGS){if(so.lock||!so.audio)continue;const p=pvGet(so);try{p.el.muted=true;const pr=p.el.play();if(pr&&pr.then)pr.then(()=>{if(pvCur!==p)p.el.pause();p.el.muted=false}).catch(()=>{p.el.muted=false})}catch(e){}}
-}
-function pvFade(p,to,dur){const w=actx.currentTime;if(p.gn){p.gn.gain.cancelScheduledValues(w);p.gn.gain.setValueAtTime(p.gn.gain.value,w);p.gn.gain.linearRampToValueAtTime(to,w+dur)}else{p.el.volume=to}}
+// ---- song preview: ONE streamed <audio> element, unlocked on the first tap.
+// Only the song on screen is downloaded (before, every song downloaded at once on the first tap).
+const PVE={el:null,gn:null,id:null,start:0,loop:0},PV={};let pvCur=null;   // PV[id] -> PVE while that song is loaded (test hooks)
+const PV_SILENT='data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA//NwwAAAAAAAAAAAAEluZm8AAAAPAAAABgAAAykAWlpaWlpaWlpaWlpaWlpaWnt7e3t7e3t7e3t7e3t7e3t7nJycnJycnJycnJycnJycnL29vb29vb29vb29vb29vb293t7e3t7e3t7e3t7e3t7e3t7/////////////////////AAAAAExhdmM2MC4zMQAAAAAAAAAAAAAAACQEUQAAAAAAAAMpso/G6AAAAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NCxKMAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NAxKQAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80LEowAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVU=';
+function pvInit(){if(PVE.el)return;const el=new Audio();el.preload='none';el.playsInline=true;PVE.el=el;
+  try{const node=actx.createMediaElementSource(el);PVE.gn=actx.createGain();PVE.gn.gain.value=0;node.connect(PVE.gn).connect(A.master)}catch(e){PVE.gn=null}}
+function pvUnlockAll(){ // inside the first tap: play a tiny silent clip so iOS lets this element play later
+  pvInit();const el=PVE.el;try{el.src=PV_SILENT;el.muted=true;const pr=el.play();if(pr&&pr.then)pr.then(()=>{if(PVE.id==null)el.pause();el.muted=false}).catch(()=>{el.muted=false})}catch(e){}}
+function pvFade(to,dur){if(!PVE.el)return;const w=actx.currentTime;if(PVE.gn){const g_=PVE.gn.gain;g_.cancelScheduledValues(w);g_.setValueAtTime(g_.value,w);g_.linearRampToValueAtTime(to,w+dur)}else{try{PVE.el.volume=to}catch(e){}}}
+function pvSilence(){if(PVE.gn){PVE.gn.gain.cancelScheduledValues(0);PVE.gn.gain.value=0}}
 function startPreview(so){
   if(mode!=='select'||so.lock)return;
   const cs=centerSong();if(cs&&cs.id!==so.id)so=cs;if(so.lock)return;
-  if(!so.audio){stopPreview();return}
-  const p=pvGet(so);if(pvCur&&pvCur!==p)stopPreview();
-  pvCur=p;pvHush(p);
-  if(p.start==null){const ch=CHS[so.id],sec=ch&&(ch.sections.find(x=>x.n==='CHORUS')||ch.sections[1]||ch.sections[0]);p.start=sec?sec.a:0}
-  try{p.el.muted=false;if(Math.abs(p.el.currentTime-p.start)>0.5||p.el.ended)p.el.currentTime=p.start;}catch(e){}
-  const pr=p.el.play();if(pr&&pr.catch)pr.catch(()=>{});
-  pvFade(p,0.75,0.25);
-  p.el.ontimeupdate=()=>{if(pvCur!==p)return;if(p.el.currentTime>p.start+16){pvFade(p,0,0.6);setTimeout(()=>{if(pvCur===p){p.el.currentTime=p.start;pvFade(p,0.75,0.4)}},650)}};
+  if(!so.audio&&!so.url){stopPreview();return}
+  pvInit();const el=PVE.el;
+  const ch=CHS[so.id],sec=ch&&(ch.sections.find(x=>x.n==='CHORUS')||ch.sections[1]||ch.sections[0]),start=sec?sec.a:0;
+  if(PVE.id!==so.id){
+    pvSilence();try{el.pause()}catch(e){}
+    for(const k in PV)delete PV[k];
+    PVE.id=so.id;PVE.start=start;PVE.loop=0;PV[so.id]=PVE;
+    const url=so.url||so.audio+'.mp3';el.preload='auto';el.src=so.url?url:url+'#t='+start.toFixed(2);
+    el.onloadedmetadata=()=>{if(PVE.id===so.id&&Math.abs(el.currentTime-start)>1){try{el.currentTime=start}catch(e){}}};
+  }else if(el.ended||el.currentTime<start-1||el.currentTime>start+20){try{el.currentTime=start}catch(e){}}
+  pvCur=PVE;el.muted=false;const pr=el.play();if(pr&&pr.catch)pr.catch(()=>{});
+  pvFade(0.75,0.25);
+  el.ontimeupdate=()=>{if(pvCur!==PVE||PVE.id!==so.id||PVE.loop)return;
+    if(el.currentTime>PVE.start+16){PVE.loop=1;pvFade(0,0.6);setTimeout(()=>{PVE.loop=0;if(pvCur===PVE&&PVE.id===so.id){try{el.currentTime=PVE.start}catch(e){}pvFade(0.75,0.4)}},650)}};
   // decode the full song in the background so START is quick
   setTimeout(()=>{if(curSong===so.id&&mode==='select'){for(const k in BUFS)if(k!==so.audio)delete BUFS[k];loadAudio(so.audio).catch(()=>{})}},1200);
 }
-function pvHush(keep){ // every other preview stops NOW (iOS ignores volume, so pause instead of fading)
-  for(const k in PV){const q=PV[k];if(q===keep)continue;try{if(q.gn){q.gn.gain.cancelScheduledValues(0);q.gn.gain.value=0}q.el.pause()}catch(e){}}
-}
-function pvKillAll(){pvCur=null;for(const k in PV){const q=PV[k];try{if(q.gn){q.gn.gain.cancelScheduledValues(0);q.gn.gain.value=0}q.el.pause()}catch(e){}}}
-setInterval(()=>{ // watchdog: outside song select nothing may play; inside, only the preview of the disc in the middle
-  if(mode!=='select'){if(pvCur||Object.values(PV).some(q=>!q.el.paused&&!q.el.muted))pvKillAll();return}
-  const cs=centerSong(),want=cs&&!cs.lock&&cs.audio?PV[cs.id]:null;
-  for(const k in PV){const q=PV[k];if(!q.el.paused&&!q.el.muted&&q!==want){try{if(q.gn)q.gn.gain.value=0;q.el.pause()}catch(e){}}}
-  if(pvCur&&pvCur!==want){pvCur=null;if(cs&&!cs.lock&&cs.audio){clearTimeout(prevTimer);startPreview(cs)}}
+function pvKillAll(){pvCur=null;pvSilence();if(PVE.el){try{PVE.el.pause()}catch(e){}}}
+setInterval(()=>{ // watchdog: outside song select nothing may play; inside, only the song of the disc in the middle
+  const el=PVE.el;if(!el)return;
+  if(mode!=='select'){if(pvCur||(!el.paused&&!el.muted))pvKillAll();return}
+  const cs=centerSong();
+  if(pvCur&&(!cs||cs.lock||PVE.id!==cs.id)){pvKillAll();if(cs&&!cs.lock&&(cs.audio||cs.url)){clearTimeout(prevTimer);startPreview(cs)}}
 },250);
 function stopPreview(){
-  const p=pvCur;pvCur=null;if(!p)return;pvFade(p,0,0.12);setTimeout(()=>{if(pvCur!==p){try{p.el.pause()}catch(e){}}},140);
+  if(!pvCur)return;pvCur=null;pvFade(0,0.12);setTimeout(()=>{if(!pvCur&&PVE.el){try{PVE.el.pause()}catch(e){}}},140);
 }
 // ---------- MY SONGS: the player's own audio files, analysed on the device ----------
 const ADD_SLIDE={id:'__add',add:1,title:'じぶんの曲で あそぶ',psalm:'手もとの曲ファイルから、譜面を自動でつくります',num:'＋',glyph:'MY SONG',c:['#0e1820','#3a6a8a'],std:999,kid:999};
@@ -1047,7 +1089,7 @@ async function importMyFile(file){
 async function deleteMy(id){
   try{await idbDo('readwrite',s=>s.delete(id))}catch(e){}
   const i=SONGS.findIndex(x=>x.id===id);if(i>=0){const so=SONGS[i];try{URL.revokeObjectURL(so.url)}catch(e){}SONGS.splice(i,1)}
-  delete CHS[id];delete BUFS[id];if(PV[id]){try{PV[id].el.pause()}catch(e){}delete PV[id]}
+  delete CHS[id];delete BUFS[id];if(PVE.id===id){pvKillAll();PVE.id=null;delete PV[id];try{PVE.el.removeAttribute('src');PVE.el.load()}catch(e){}}
   curSong=ADD_SLIDE.id;openSelect();
 }
 $('myFile').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];e.target.value='';if(f)importMyFile(f)});
@@ -1076,7 +1118,7 @@ function applyMode(){
   buildCarousel();coopUI();
 }
 function openSelect(){
-  recStop(true);stopSrc();mode='select';$('hud').classList.remove('on');
+  recStop(true);stopSrc();setTimeout(newPop,900);mode='select';$('hud').classList.remove('on');
   show('select');applyMode();updBadges();fitSoon();
   clearTimeout(prevTimer);prevTimer=setTimeout(()=>{const so=songById(curSong);if(mode==='select'&&!so.lock)startPreview(so)},350);
 }
@@ -1109,7 +1151,7 @@ const fever={on:false,since:0,nextBeat:0};
 
 function startGame(){
   pvKillAll();clearTimeout(prevTimer);
-  SONG=songById(curSong);CH=CHS[SONG.id];BUF=BUFS[SONG.audio];
+  SONG=songById(curSong);if(SONG&&SONG.boss!=='stars')bossLoad();CH=CHS[SONG.id];BUF=BUFS[SONG.audio];
   if(!BUF||!CH)return;
   D=effDiff(SONG);buildHarp(CH.scale);
   if(A.dly){A.dly.delayTime.value=Math.min(1.4,0.75*60/CH.bpm)}
@@ -1164,7 +1206,7 @@ function goBackground(){
   if(bgHidden)return;bgHidden=true;
   if(mode==='play')pauseGame();
   clearTimeout(prevTimer);stopPreview();
-  for(const k in PV){try{PV[k].el.pause()}catch(e){}}
+  pvKillAll();
   if(actx&&actx.state==='running')actx.suspend().catch(()=>{});
 }
 function goForeground(){
@@ -1842,7 +1884,11 @@ function vidAsk(meta,score,rank){
   no.onclick=()=>{REC.blob=null;URL.revokeObjectURL(url);box.innerHTML='<b>🎬 わかりました</b>動画は送らずに消しました。';};
   ok.onclick=async()=>{ok.disabled=no.disabled=c1.disabled=c2.disabled=true;setS('準備中…');
     try{await vidUpload(meta,score,blob,setS);REC.blob=null;box.innerHTML='<b>🎬 ありがとう！</b>運営が確認したあと、公式サイトのランキングに公開されます。取り下げたいときは、設定の「公開をやめる」から。'}
-    catch(e){const m=String(e.j&&e.j.message||e.message||'');setS(/not top3|not best/.test(m)?'もうTOP3の記録ではないため送れませんでした':/too many/.test(m)?'しばらくしてからもう一度お試しください':'送れませんでした（'+(e.name==='AbortError'?'時間切れ':m||'通信エラー')+'）');ok.disabled=no.disabled=c1.disabled=c2.disabled=false;upd()}};
+    catch(e){const m=String(e.j&&e.j.message||e.j&&e.j.error||e.message||'');
+      setS(/not top3|not best/.test(m)?'もうTOP3の記録ではないため送れませんでした':/too many/.test(m)?'しばらくしてからもう一度お試しください':
+        /Bucket not found|row-level security|policy|PGRST202|Could not find|does not exist/i.test(m+' '+(e.j&&e.j.code||''))?'動画を受け取る準備がサーバーにまだありません（運営の方へ：Supabaseで sihen_video.sql を実行してください）。この画面のままなら、準備後にもう一度押せます。':
+        'うまく送れませんでした：'+sbWhy(e)+(m?'（'+m.slice(0,80)+'）':'')+'。もう一度押してください。');
+      ok.disabled=no.disabled=c1.disabled=c2.disabled=false;upd()}};
   rp.insertBefore(box,rp.firstChild?rp.firstChild.nextSibling:null);
 }
 
@@ -1870,7 +1916,7 @@ function curBgImg0(){ // per-song background when the song has one (bgf), otherw
 // loading screen: song artworks slide by one after another
 const LS={t0:0,list:null};
 function drawLoadingSlides(){
-  if(!LS.list){LS.list=[bg].concat(SONGS.filter(x=>x.bgf).map(x=>{if(!BGI[x.id]){const im=new Image();im.src=x.bgf;BGI[x.id]=im}return BGI[x.id]}));LS.t0=performance.now()}
+  if(!LS.list||LS.n!==Object.keys(BGI).length){LS.list=[bg].concat(Object.values(BGI));LS.n=Object.keys(BGI).length;if(!LS.t0)LS.t0=performance.now()}
   const imgs=LS.list.filter(im=>im.complete&&im.naturalWidth);if(!imgs.length)return;
   const now=performance.now()-LS.t0,dur=2600,tr=700,i=Math.floor(now/dur),ph=now%dur;
   const draw=(im,dx,z)=>{const s=Math.max(W/im.naturalWidth,H/im.naturalHeight)*z,iw=im.naturalWidth*s,ih=im.naturalHeight*s;g.drawImage(im,(W-iw)/2+dx,(H-ih)/2,iw,ih)};
@@ -2186,9 +2232,11 @@ function drawTitleBeat(){
 // Sprites are optional: boss_idle/hit/attack/angry/down.png, fx_stone.png, bg_battle.jpg.
 // Until they exist the small soldier sprite stands in, so the battle works today.
 const BOSS={img:{},fx:{}};
-['idle','hit','attack','angry','down'].forEach(k=>{const im=new Image();im.onerror=()=>{im._bad=1};im.src='boss_'+k+'.png';BOSS.img[k]=im});
+['idle','hit','attack','angry','down'].forEach(k=>{const im=new Image();im.onerror=()=>{im._bad=1};im._src='boss_'+k+'.png';BOSS.img[k]=im});
 ['stone'].forEach(k=>{const im=new Image();im.onerror=()=>{im._bad=1};im.src='fx_'+k+'.png';BOSS.fx[k]=im});
-const BG_BATTLE=(()=>{const im=new Image();im.onerror=()=>{im._bad=1};im.src='bg_battle.jpg';return im})();
+const BG_BATTLE=(()=>{const im=new Image();im.onerror=()=>{im._bad=1};im._src='bg_battle.jpg';return im})();
+// Goliath art is only fetched when a Goliath song is picked (or a few seconds after the menu opens)
+function bossLoad(){for(const im of [...Object.values(BOSS.img),BG_BATTLE])if(im._src&&!im.src)im.src=im._src}
 const okImg=im=>im&&im.complete&&im.naturalWidth>0&&!im._bad;
 function bossImg(k){for(const c of [k,'idle','attack','angry'])if(okImg(BOSS.img[c]))return BOSS.img[c];return SP.goliath}
 const isBattle=()=>SONG&&SONG.boss!=='stars';
