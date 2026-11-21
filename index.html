@@ -787,12 +787,13 @@ function goSlide(k,instant){
 let scrollRaf=0,prevTimer=0;
 function onScroll(){
   cancelAnimationFrame(scrollRaf);scrollRaf=requestAnimationFrame(()=>{
-    const car=$('carousel'),mid=car.scrollLeft+car.clientWidth/2;let best=0,bd=1e9;
+    const car=$('carousel');if(mode!=='select'||!car.clientWidth||!car.children.length)return;const mid=car.scrollLeft+car.clientWidth/2;let best=0,bd=1e9;
     [...car.children].forEach((sl,k)=>{const c=sl.offsetLeft+sl.offsetWidth/2,d=c-mid,ad=Math.abs(d);if(ad<bd){bd=ad;best=k}
       const r=Math.min(1,ad/sl.offsetWidth);sl.style.transform='scale('+(1-r*0.25)+') rotateY('+(Math.sign(d)*-r*25)+'deg)';sl.style.opacity=1-r*0.5;});
     if(best!==carIdx||!$('iTitle').textContent)selectSlide(best);
   });
 }
+function centerSong(){const so=carList[carIdx];return so||songById(curSong)}
 function selectSlide(k){
   carIdx=k;const so=carList[k];if(!so)return;
   [...$('carousel').children].forEach((sl,j)=>sl.classList.toggle('cur',j===k));
@@ -838,6 +839,7 @@ function pvUnlockAll(){ // called inside the first tap so iOS lets these element
 function pvFade(p,to,dur){const w=actx.currentTime;if(p.gn){p.gn.gain.cancelScheduledValues(w);p.gn.gain.setValueAtTime(p.gn.gain.value,w);p.gn.gain.linearRampToValueAtTime(to,w+dur)}else{p.el.volume=to}}
 function startPreview(so){
   if(mode!=='select'||so.lock)return;
+  const cs=centerSong();if(cs&&cs.id!==so.id)so=cs;if(so.lock)return;
   if(!so.audio){stopPreview();return}
   const p=pvGet(so);if(pvCur&&pvCur!==p)stopPreview();
   pvCur=p;pvHush(p);
@@ -849,15 +851,18 @@ function startPreview(so){
   // decode the full song in the background so START is quick
   setTimeout(()=>{if(curSong===so.id&&mode==='select'){for(const k in BUFS)if(k!==so.audio)delete BUFS[k];loadAudio(so.audio).catch(()=>{})}},1200);
 }
-function pvHush(keep){ // silence every other preview right away, then pause it
-  for(const k in PV){const q=PV[k];if(q===keep)continue;if(!q.el.paused||(q.gn&&q.gn.gain.value>0.001)){pvFade(q,0,0.06);setTimeout(()=>{if(pvCur!==q){try{q.el.pause()}catch(e){}}},90)}}
+function pvHush(keep){ // every other preview stops NOW (iOS ignores volume, so pause instead of fading)
+  for(const k in PV){const q=PV[k];if(q===keep)continue;try{if(q.gn){q.gn.gain.cancelScheduledValues(0);q.gn.gain.value=0}q.el.pause()}catch(e){}}
 }
-setInterval(()=>{ // watchdog: anything not the current preview (or anything outside song select) gets paused
-  for(const k in PV){const q=PV[k];if(!q.el.paused&&(q!==pvCur||mode!=='select')&&!q.el.muted){try{if(q.gn)q.gn.gain.value=0;q.el.pause()}catch(e){}}}
-  if(mode!=='select'&&pvCur){pvCur=null}
-},400);
+function pvKillAll(){pvCur=null;for(const k in PV){const q=PV[k];try{if(q.gn){q.gn.gain.cancelScheduledValues(0);q.gn.gain.value=0}q.el.pause()}catch(e){}}}
+setInterval(()=>{ // watchdog: outside song select nothing may play; inside, only the preview of the disc in the middle
+  if(mode!=='select'){if(pvCur||Object.values(PV).some(q=>!q.el.paused&&!q.el.muted))pvKillAll();return}
+  const cs=centerSong(),want=cs&&!cs.lock&&cs.audio?PV[cs.id]:null;
+  for(const k in PV){const q=PV[k];if(!q.el.paused&&!q.el.muted&&q!==want){try{if(q.gn)q.gn.gain.value=0;q.el.pause()}catch(e){}}}
+  if(pvCur&&pvCur!==want){pvCur=null;if(cs&&!cs.lock&&cs.audio){clearTimeout(prevTimer);startPreview(cs)}}
+},250);
 function stopPreview(){
-  const p=pvCur;pvCur=null;if(!p)return;pvFade(p,0,0.18);setTimeout(()=>{if(pvCur!==p){try{p.el.pause()}catch(e){}}},220);
+  const p=pvCur;pvCur=null;if(!p)return;pvFade(p,0,0.12);setTimeout(()=>{if(pvCur!==p){try{p.el.pause()}catch(e){}}},140);
 }
 // ---------- MY SONGS: the player's own audio files, analysed on the device ----------
 const ADD_SLIDE={id:'__add',add:1,title:'じぶんの曲で あそぶ',psalm:'手もとの曲ファイルから、譜面を自動でつくります',num:'＋',glyph:'MY SONG',c:['#0e1820','#3a6a8a'],std:999,kid:999};
@@ -1086,11 +1091,11 @@ function confirmVid(b){if(b.dataset.arm){delete b.dataset.arm;return true}b.data
 function harpUI(){const t=$('harpTog');t.textContent=cfg.harp?'ON':'OFF';t.classList.toggle('on',!!cfg.harp)}
 $('harpTog').addEventListener('click',()=>{cfg.harp=cfg.harp?0:1;store.set('harp',cfg.harp);harpUI();if(cfg.harp&&A.fx){SONG=songById(curSong);CH=CHS[SONG.id]||CH;voice(4,.5,0,{sparkle:1})}});harpUI();
 $('startBtn').addEventListener('click',async()=>{
-  const so=songById(curSong);if(so.lock)return;
+  const so=centerSong();if(!so||so.lock||so.add)return;curSong=so.id;
   if(coopOn()){if(!coopIsHost())return;rtCast('start',{song:so.id});coopBegin(so.id);return}
-  clearTimeout(prevTimer);stopPreview();
+  clearTimeout(prevTimer);pvKillAll();mode='loading';
   if(!BUFS[so.audio]){show('loading');$('loadTxt').textContent='LOADING…';try{await loadAudio(so.audio)}catch(e){$('loadTxt').textContent='LOAD ERROR';$('err').textContent=String(e&&e.message||e);return}}
-  startGame();
+  curSong=so.id;startGame();if(mode==='loading')mode='select';
 });
 
 // ================= GAME =================
@@ -1101,6 +1106,7 @@ const pointers=new Map();
 const fever={on:false,since:0,nextBeat:0};
 
 function startGame(){
+  pvKillAll();clearTimeout(prevTimer);
   SONG=songById(curSong);CH=CHS[SONG.id];BUF=BUFS[SONG.audio];
   if(!BUF||!CH)return;
   D=effDiff(SONG);buildHarp(CH.scale);
@@ -2484,7 +2490,7 @@ $('cpClose').addEventListener('click',()=>{coopSaveName();openSelect()});$('cpGo
 $('cpMake').addEventListener('click',coopCreate);$('cpJoin').addEventListener('click',coopJoin);$('cpLeave').addEventListener('click',()=>{rtLeave();coopUI()});
 $('cpName').addEventListener('change',()=>{coopSaveName();rtTrack()});
 requestAnimationFrame(frame);
-window.__sb={cheer:()=>cheerMult(),get RT(){return RT},get BT(){return BT},hp:()=>hp(),get CHS(){return CHS},get SONGS(){return SONGS},judgePos:l=>judgePos(l),get A(){return A},get cal(){return cal},get actx(){return actx},probe:async(id)=>{SONG=songById(id);CH=CHS[id];startAt=actx.currentTime;const an=actx.createAnalyser();an.fftSize=2048;A.master.connect(an);const buf=new Float32Array(2048);let pk={};const meas=async(name,fn)=>{fn();let m=0,e=0,c=0;const t0=performance.now();while(performance.now()-t0<700){an.getFloatTimeDomainData(buf);for(const v of buf){m=Math.max(m,Math.abs(v));e+=v*v;c++}await new Promise(r=>setTimeout(r,20))}pk[name]=[+m.toFixed(3),+Math.sqrt(e/c).toFixed(4)]};await meas('tap',()=>voice(3,.55,0,{sparkle:1}));await meas('flick',()=>voice(3,.5,0,{kind:'flick',sparkle:1}));await meas('hold',()=>{const h=holdVoice(3,.55,0);setTimeout(()=>h&&h.stop(actx.currentTime),500)});A.master.disconnect(an);return JSON.stringify(pk)},get prev(){return !!(pvCur&&!pvCur.el.paused)},get pvPlaying(){return Object.keys(PV).filter(k=>!PV[k].el.paused&&!PV[k].el.muted)},get cur(){return curSong},get notes(){return notes},songTime:()=>songTime(),get st(){return st},get mode(){return mode},get fever(){return fever.on},cfg,setMode:m=>{cfg.mode=m;applyMode()},press:(...a)=>press(...a),move:(...a)=>move(...a),release:(...a)=>release(...a),boss:(t,c)=>bossBanner(t,c),banner:t=>{banner={txt:t,t:performance.now(),col:'#ffdf8a',big:1}},get evLag(){return evLag},get REC(){return REC},recStop:d=>recStop(d),vidAsk:(m,sc,r)=>{show('result');vidAsk(m,sc,r)}};
+window.__sb={cheer:()=>cheerMult(),get RT(){return RT},get BT(){return BT},hp:()=>hp(),get CHS(){return CHS},get SONGS(){return SONGS},judgePos:l=>judgePos(l),get A(){return A},get cal(){return cal},get actx(){return actx},probe:async(id)=>{SONG=songById(id);CH=CHS[id];startAt=actx.currentTime;const an=actx.createAnalyser();an.fftSize=2048;A.master.connect(an);const buf=new Float32Array(2048);let pk={};const meas=async(name,fn)=>{fn();let m=0,e=0,c=0;const t0=performance.now();while(performance.now()-t0<700){an.getFloatTimeDomainData(buf);for(const v of buf){m=Math.max(m,Math.abs(v));e+=v*v;c++}await new Promise(r=>setTimeout(r,20))}pk[name]=[+m.toFixed(3),+Math.sqrt(e/c).toFixed(4)]};await meas('tap',()=>voice(3,.55,0,{sparkle:1}));await meas('flick',()=>voice(3,.5,0,{kind:'flick',sparkle:1}));await meas('hold',()=>{const h=holdVoice(3,.55,0);setTimeout(()=>h&&h.stop(actx.currentTime),500)});A.master.disconnect(an);return JSON.stringify(pk)},get prev(){return !!(pvCur&&!pvCur.el.paused)},get pvPlaying(){return Object.keys(PV).filter(k=>!PV[k].el.paused&&!PV[k].el.muted)},get cur(){return curSong},get notes(){return notes},songTime:()=>songTime(),get st(){return st},get mode(){return mode},get fever(){return fever.on},cfg,setMode:m=>{cfg.mode=m;applyMode()},press:(...a)=>press(...a),move:(...a)=>move(...a),release:(...a)=>release(...a),boss:(t,c)=>bossBanner(t,c),banner:t=>{banner={txt:t,t:performance.now(),col:'#ffdf8a',big:1}},get evLag(){return evLag},get PV(){return PV},get cur(){return {cur:curSong,center:carList[carIdx]&&carList[carIdx].id,song:SONG&&SONG.id,buf:BUF&&BUF.duration,bufs:Object.fromEntries(Object.entries(BUFS).map(([k,v])=>[k,v.duration])),mode}},goSlide:(k,i)=>goSlide(k,i),get REC(){return REC},recStop:d=>recStop(d),vidAsk:(m,sc,r)=>{show('result');vidAsk(m,sc,r)}};
 })();
 </script>
 </body>
