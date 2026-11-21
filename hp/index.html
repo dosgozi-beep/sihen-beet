@@ -379,7 +379,7 @@ const recs=document.getElementById('records'),info=document.getElementById('info
 SONGS.forEach((s,i)=>{
   const b=document.createElement('button');b.className='rec'+(s[6]?'':' lock');b.type='button';b.dataset.i=i;b.setAttribute('aria-label',s[1]+' の詳細');
   b.innerHTML='<div class="light"></div><div class="sleeve"></div><div class="disc"><img alt="" loading="lazy"></div><span class="no">No.'+String(i+1).padStart(2,'0')+'</span>'+(s[6]?'':'<span class="soon">COMING SOON</span>')+(isNew(s[0])?'<span class="newTag">NEW</span>':'');
-  b.querySelector('img').src='assets/disc_'+s[0]+'.jpg';recs.appendChild(b);
+  b.querySelector('img').src='assets/disc_'+s[0]+'.jpg?v=2';recs.appendChild(b);
 });
 
 // 部屋の写真（Gemini）が届いていれば、それを壁に使う
@@ -420,7 +420,7 @@ lis.addEventListener('click',()=>{
   const i=SONGS.findIndex(s=>isNew(s[0])&&s[6]&&!seen.includes(s[0]));if(i<0)return;const s=SONGS[i];
   const d=document.createElement('div');d.id='newPop';d.setAttribute('role','status');
   d.innerHTML='<img alt=""><div class="tx"><span class="nb">NEW SONG</span><div class="nt"></div><div class="ns"></div><div class="bt"><button type="button" class="pl">▶ 試聴</button><a target="_blank" rel="noopener" href="https://sihen-beet.vercel.app/">いますぐ遊ぶ</a></div></div><button class="x" type="button" aria-label="とじる">×</button>';
-  d.querySelector('img').src='assets/disc_'+s[0]+'.jpg';d.querySelector('.nt').textContent=s[1];d.querySelector('.ns').textContent=s[2];
+  d.querySelector('img').src='assets/disc_'+s[0]+'.jpg?v=2';d.querySelector('.nt').textContent=s[1];d.querySelector('.ns').textContent=s[2];
   const seenIt=()=>{if(!seen.includes(s[0])){seen.push(s[0]);try{localStorage.setItem('hp_seenNew',JSON.stringify(seen))}catch(e){}}};
   d.querySelector('.x').onclick=()=>{seenIt();d.classList.remove('on');setTimeout(()=>d.remove(),600)};
   d.querySelector('a').onclick=seenIt;
@@ -439,7 +439,7 @@ const SB={url:'https://kdzedfffbgtloyvjexjf.supabase.co',key:'sb_publishable_2yF
 const DIFFS=['NORMAL','HARD','EXPERT','KIDS'];let rSong='goliath',rDiff='NORMAL',rTimer=0;
 const picker=document.getElementById('picker'),dtabs=document.getElementById('dtabs'),rowsEl=document.getElementById('rows');
 SONGS.filter(s=>s[6]).forEach(s=>{const b=document.createElement('button');b.className='pick';b.type='button';b.dataset.id=s[0];
-  b.innerHTML='<img alt="" loading="lazy"><span></span>';b.querySelector('img').src='assets/disc_'+s[0]+'.jpg';b.querySelector('span').textContent=s[1];
+  b.innerHTML='<img alt="" loading="lazy"><span></span>';b.querySelector('img').src='assets/disc_'+s[0]+'.jpg?v=2';b.querySelector('span').textContent=s[1];
   b.addEventListener('click',()=>{rSong=s[0];loadRank()});picker.appendChild(b)});
 DIFFS.forEach(d=>{const b=document.createElement('button');b.className='dtab';b.type='button';b.dataset.d=d;b.textContent=d==='KIDS'?'キッズ':d;
   b.addEventListener('click',()=>{rDiff=d;loadRank()});dtabs.appendChild(b)});
